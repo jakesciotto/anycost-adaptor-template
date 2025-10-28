@@ -1,0 +1,121 @@
+# AnyCost Adaptor Template Configuration
+# This file defines the variables used to customize the template for different providers
+
+# Provider Configuration
+provider:
+  name: "{{PROVIDER_NAME}}"           # e.g., "oracle", "splunk", "sumologic", "aws", "azure"
+  display_name: "{{PROVIDER_DISPLAY_NAME}}" # e.g., "Oracle Cloud Infrastructure", "Splunk", "SumoLogic"
+  service_type: "{{SERVICE_TYPE}}"    # e.g., "cloud", "monitoring", "logging", "security"
+
+# API Configuration
+api:
+  base_url: "{{API_BASE_URL}}"        # Provider's API endpoint
+  auth_method: "{{AUTH_METHOD}}"      # e.g., "api_key", "oauth", "certificate", "iam_role"
+  rate_limit: "{{RATE_LIMIT}}"        # Requests per second/minute
+  timeout: "{{API_TIMEOUT}}"          # Request timeout in seconds
+
+# Authentication Requirements
+auth:
+  required_env_vars:                  # Environment variables needed
+    - "{{PROVIDER_UPPER}}_API_KEY"
+    - "{{PROVIDER_UPPER}}_ENDPOINT"
+  optional_env_vars:
+    - "{{PROVIDER_UPPER}}_REGION"
+    - "{{PROVIDER_UPPER}}_TIMEOUT"
+
+# Data Configuration
+data:
+  source_format: "{{SOURCE_FORMAT}}"  # e.g., "json", "csv", "xml"
+  time_field: "{{TIME_FIELD}}"        # Field name for timestamps
+  cost_field: "{{COST_FIELD}}"        # Field name for costs
+  resource_field: "{{RESOURCE_FIELD}}" # Field name for resource identifier
+  
+# CBF (Common Billing Format) Field Mappings
+# Based on CloudZero AnyCost CBF specification
+cbf_mapping:
+  # Required fields
+  "time/usage_start": "{{TIME_USAGE_START_MAPPING}}"     # The hour during which the charged usage applies (datetime)
+  "cost/cost": "{{COST_COST_MAPPING}}"                  # Cost associated with the line item (number)
+  "bill/invoice_id": "{{BILL_INVOICE_ID_MAPPING}}"      # Uniquely identifies a particular bill (string)
+  
+  # Line item columns (optional)
+  "lineitem/id": "{{LINEITEM_ID_MAPPING}}"              # Unique identifier for line item
+  "lineitem/type": "{{LINEITEM_TYPE_MAPPING}}"          # Categorizes line item (Usage, Tax, Discount)
+  "lineitem/description": "{{LINEITEM_DESCRIPTION_MAPPING}}"  # Additional line item details
+  "lineitem/cloud_provider": "{{LINEITEM_CLOUD_PROVIDER_MAPPING}}"  # Cloud provider identifier
+  
+  # Resource columns (optional)
+  "resource/id": "{{RESOURCE_ID_MAPPING}}"              # Unique resource identifier
+  "resource/service": "{{RESOURCE_SERVICE_MAPPING}}"    # Service category
+  "resource/account": "{{RESOURCE_ACCOUNT_MAPPING}}"    # Associated account
+  "resource/region": "{{RESOURCE_REGION_MAPPING}}"      # Resource region
+  "resource/usage_family": "{{RESOURCE_USAGE_FAMILY_MAPPING}}"  # Service subdivision
+  
+  # Action columns (optional)
+  "action/operation": "{{ACTION_OPERATION_MAPPING}}"    # Action performed
+  "action/usage_type": "{{ACTION_USAGE_TYPE_MAPPING}}"  # Operation subdivision
+  
+  # Usage columns (optional)
+  "usage/amount": "{{USAGE_AMOUNT_MAPPING}}"            # Numeric usage value
+  "usage/units": "{{USAGE_UNITS_MAPPING}}"              # Usage measurement units
+  
+  # Additional cost columns (optional)
+  "cost/discounted_cost": "{{COST_DISCOUNTED_COST_MAPPING}}"
+  "cost/amortized_cost": "{{COST_AMORTIZED_COST_MAPPING}}"
+  "cost/on_demand_cost": "{{COST_ON_DEMAND_COST_MAPPING}}"
+  
+  # Kubernetes columns (optional - for K8s workloads)
+  "k8s/cluster": "{{K8S_CLUSTER_MAPPING}}"
+  "k8s/namespace": "{{K8S_NAMESPACE_MAPPING}}"
+  "k8s/deployment": "{{K8S_DEPLOYMENT_MAPPING}}"
+  "k8s/labels": "{{K8S_LABELS_MAPPING}}"
+
+# Dependencies
+dependencies:
+  - "requests>=2.28.0"
+  - "{{PROVIDER_SDK}}"                # Provider-specific SDK if needed
+
+# Example Configurations for Common Providers
+examples:
+  splunk:
+    provider:
+      name: "splunk"
+      display_name: "Splunk"
+      service_type: "monitoring"
+    api:
+      base_url: "https://{{SPLUNK_HOST}}:8089"
+      auth_method: "basic_auth"
+      rate_limit: "100"
+      timeout: "60"
+    auth:
+      required_env_vars:
+        - "SPLUNK_HOST"
+        - "SPLUNK_USERNAME"
+        - "SPLUNK_PASSWORD"
+    dependencies:
+      - "requests>=2.28.0"
+      - "splunk-sdk>=1.7.0"
+
+  sumologic:
+    provider:
+      name: "sumologic"
+      display_name: "SumoLogic"
+      service_type: "logging"
+    api:
+      base_url: "https://api.{deployment}.sumologic.com/api"
+      auth_method: "basic_auth"
+      rate_limit: "240"
+      timeout: "30"
+    auth:
+      required_env_vars:
+        - "SUMO_ACCESS_KEY"
+        - "SUMO_SECRET_KEY"
+        - "SUMO_DEPLOYMENT"
+        - "SUMO_ORG_ID"
+      optional_env_vars:
+        - "LOG_CONTINUOUS_CREDIT_RATE"
+        - "LOG_FREQUENT_CREDIT_RATE"
+        - "LOG_INFREQUENT_CREDIT_RATE"
+        - "COST_PER_CREDIT"
+    dependencies:
+      - "requests>=2.28.0"

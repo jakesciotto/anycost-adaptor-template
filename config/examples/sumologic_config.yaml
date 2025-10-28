@@ -1,0 +1,37 @@
+# Example configuration for SumoLogic AnyCost Adaptor
+# Usage: python generate_adaptor.py --config config/examples/sumologic_config.yaml --output ../sumologic-anycost-adaptor
+
+provider:
+  name: "sumologic"
+  display_name: "SumoLogic"
+  service_type: "logging"
+
+api:
+  base_url: "https://api.{deployment}.sumologic.com/api"
+  auth_method: "basic_auth"
+  rate_limit: "240"
+  timeout: "30"
+
+auth:
+  required_env_vars:
+    - "SUMO_ACCESS_KEY"        # Your SumoLogic access key
+    - "SUMO_SECRET_KEY"        # Your SumoLogic secret key  
+    - "SUMO_DEPLOYMENT"        # SumoLogic deployment (us1, us2, eu, au)
+    - "SUMO_ORG_ID"           # Your SumoLogic organization ID
+  optional_env_vars:
+    - "LOG_CONTINUOUS_CREDIT_RATE"        # Default: 20
+    - "LOG_FREQUENT_CREDIT_RATE"          # Default: 9
+    - "LOG_INFREQUENT_CREDIT_RATE"        # Default: 0.4
+    - "LOG_INFREQUENT_SCAN_CREDIT_RATE"   # Default: 0.016
+    - "METRICS_CREDIT_RATE"               # Default: 3
+    - "TRACING_CREDIT_RATE"               # Default: 14
+    - "COST_PER_CREDIT"                   # Default: 0.15
+
+data:
+  source_format: "json"
+  time_field: "timestamp"
+  cost_field: "cost"
+  resource_field: "source_category"
+
+dependencies:
+  - "requests>=2.28.0"

@@ -1,0 +1,32 @@
+# Example configuration for Splunk AnyCost Adaptor
+# Usage: python generate_adaptor.py --config config/examples/splunk_config.yaml --output ../splunk-anycost-adaptor
+
+provider:
+  name: "splunk"
+  display_name: "Splunk"
+  service_type: "monitoring"
+
+api:
+  base_url: "https://{{SPLUNK_HOST}}:8089"
+  auth_method: "basic_auth"
+  rate_limit: "100"
+  timeout: "60"
+
+auth:
+  required_env_vars:
+    - "SPLUNK_HOST"
+    - "SPLUNK_USERNAME"  
+    - "SPLUNK_PASSWORD"
+  optional_env_vars:
+    - "SPLUNK_PORT"
+    - "SPLUNK_SCHEME"
+
+data:
+  source_format: "json"
+  time_field: "timestamp"
+  cost_field: "license_usage"
+  resource_field: "sourcetype"
+
+dependencies:
+  - "requests>=2.28.0"
+  - "splunk-sdk>=1.7.0"

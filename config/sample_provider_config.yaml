@@ -1,0 +1,30 @@
+# Sample Provider Configuration for Template Generation
+# Usage: python generate_adaptor.py --config config/sample_provider_config.yaml --output ../sample-provider-adaptor
+
+provider:
+  name: "sampleprovider"
+  display_name: "Sample Cloud Provider"
+  service_type: "cloud"
+
+api:
+  base_url: "https://api.sampleprovider.com/v1"
+  auth_method: "api_key"
+  rate_limit: "100"
+  timeout: "30"
+
+auth:
+  required_env_vars:
+    - "SAMPLEPROVIDER_API_KEY"
+    - "SAMPLEPROVIDER_ENDPOINT"
+  optional_env_vars:
+    - "SAMPLEPROVIDER_REGION"
+    - "SAMPLEPROVIDER_TIMEOUT"
+
+data:
+  source_format: "json"
+  time_field: "billing_date"
+  cost_field: "cost"
+  resource_field: "resource_id"
+
+dependencies:
+  - "requests>=2.28.0"

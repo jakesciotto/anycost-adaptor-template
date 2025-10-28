@@ -1,0 +1,300 @@
+#!/usr/bin/env python3
+"""
+{{PROVIDER_DISPLAY_NAME}} Data Transformation
+
+This module transforms {{PROVIDER_DISPLAY_NAME}} billing data into Common Billing Format (CBF)
+for upload to CloudZero AnyCost Stream.
+
+Generated from AnyCost Adaptor Template
+"""
+
+import hashlib
+import json
+from datetime import datetime
+from decimal import Decimal, ROUND_HALF_UP
+from typing import List, Dict, Any, Optional
+
+
+def transform_{{provider_name}}_to_cbf(raw_data: List[Dict[str, Any]]) -> List[Dict[str, str]]:
+    """
+    Transform {{PROVIDER_DISPLAY_NAME}} billing data to Common Billing Format.
+    
+    Args:
+        raw_data: Raw {{PROVIDER_DISPLAY_NAME}} billing records
+        
+    Returns:
+        List of CBF-formatted records
+    """
+    cbf_records = []
+    
+    for record in raw_data:
+        try:
+            cbf_record = transform_single_record(record)
+            if cbf_record:
+                cbf_records.append(cbf_record)
+        except Exception as e:
+            print(f"Error transforming record: {e}")
+            print(f"Problematic record: {record}")
+            continue
+    
+    return cbf_records
+
+
+def transform_single_record(record: Dict[str, Any]) -> Optional[Dict[str, str]]:
+    """
+    Transform a single {{PROVIDER_DISPLAY_NAME}} record to CBF format.
+    
+    Args:
+        record: Single {{PROVIDER_DISPLAY_NAME}} billing record
+        
+    Returns:
+        CBF-formatted record or None if transformation fails
+    """
+    try:
+        # Extract and transform core fields
+        {{FIELD_EXTRACTION_LOGIC}}
+        
+        # Build CBF record (CloudZero AnyCost format)
+        cbf_record = {
+            # Required fields
+            'time/usage_start': {{TIME_USAGE_START_MAPPING}},
+            'cost/cost': {{COST_COST_MAPPING}},
+            'bill/invoice_id': {{BILL_INVOICE_ID_MAPPING}},
+            
+            # Line item columns (optional)
+            'lineitem/id': {{LINEITEM_ID_MAPPING}},
+            'lineitem/type': {{LINEITEM_TYPE_MAPPING}},
+            'lineitem/description': {{LINEITEM_DESCRIPTION_MAPPING}},
+            'lineitem/cloud_provider': {{LINEITEM_CLOUD_PROVIDER_MAPPING}},
+            
+            # Resource columns (optional)
+            'resource/id': {{RESOURCE_ID_MAPPING}},
+            'resource/service': {{RESOURCE_SERVICE_MAPPING}},
+            'resource/account': {{RESOURCE_ACCOUNT_MAPPING}},
+            'resource/region': {{RESOURCE_REGION_MAPPING}},
+            'resource/usage_family': {{RESOURCE_USAGE_FAMILY_MAPPING}},
+            
+            # Action columns (optional)
+            'action/operation': {{ACTION_OPERATION_MAPPING}},
+            'action/usage_type': {{ACTION_USAGE_TYPE_MAPPING}},
+            
+            # Usage columns (optional)
+            'usage/amount': {{USAGE_AMOUNT_MAPPING}},
+            'usage/units': {{USAGE_UNITS_MAPPING}},
+            
+            # Additional cost columns (optional)
+            'cost/discounted_cost': {{COST_DISCOUNTED_COST_MAPPING}},
+            'cost/amortized_cost': {{COST_AMORTIZED_COST_MAPPING}}, 
+            'cost/on_demand_cost': {{COST_ON_DEMAND_COST_MAPPING}},
+            
+            # Kubernetes columns (optional)
+            'k8s/cluster': {{K8S_CLUSTER_MAPPING}},
+            'k8s/namespace': {{K8S_NAMESPACE_MAPPING}},
+            'k8s/deployment': {{K8S_DEPLOYMENT_MAPPING}},
+            'k8s/labels': {{K8S_LABELS_MAPPING}}
+        }
+        
+        # Validate required fields
+        validate_cbf_record(cbf_record)
+        
+        return cbf_record
+        
+    except Exception as e:
+        print(f"Error transforming single record: {e}")
+        return None
+
+
+def format_cost(cost_value: Any) -> str:
+    """
+    Format cost value to CBF standard (2 decimal places).
+    
+    Args:
+        cost_value: Raw cost value
+        
+    Returns:
+        Formatted cost string
+    """
+    if cost_value is None:
+        return "0.00"
+    
+    try:
+        # Convert to Decimal for precise arithmetic
+        decimal_cost = Decimal(str(cost_value))
+        # Round to 2 decimal places
+        rounded_cost = decimal_cost.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        return str(rounded_cost)
+    except (ValueError, TypeError):
+        print(f"Warning: Could not format cost value: {cost_value}")
+        return "0.00"
+
+
+def format_datetime(dt_value: Any, format_string: str = "%Y-%m-%dT%H:%M:%S.%fZ") -> str:
+    """
+    Format datetime value to CBF standard.
+    
+    Args:
+        dt_value: Raw datetime value
+        format_string: Output format string
+        
+    Returns:
+        Formatted datetime string
+    """
+    if dt_value is None:
+        return ""
+    
+    try:
+        if isinstance(dt_value, datetime):
+            return dt_value.strftime(format_string)
+        elif isinstance(dt_value, str):
+            # Try to parse and reformat
+            parsed_dt = datetime.fromisoformat(dt_value.replace('Z', '+00:00'))
+            return parsed_dt.strftime(format_string)
+        else:
+            return str(dt_value)
+    except Exception as e:
+        print(f"Warning: Could not format datetime value: {dt_value}, error: {e}")
+        return str(dt_value) if dt_value else ""
+
+
+def generate_provider_id(record: Dict[str, Any]) -> str:
+    """
+    Generate a unique provider ID for the record.
+    
+    Args:
+        record: Raw billing record
+        
+    Returns:
+        Unique provider ID string
+    """
+    # Create a unique identifier based on key fields
+    key_fields = [
+        {{PROVIDER_ID_KEY_FIELDS}}
+    ]
+    
+    # Combine key fields and hash
+    combined = "|".join(str(field) for field in key_fields if field is not None)
+    return hashlib.sha256(combined.encode()).hexdigest()[:16]
+
+
+def generate_lineitem_id(record: Dict[str, Any]) -> str:
+    """
+    Generate a unique line item ID for the record.
+    
+    Args:
+        record: Raw billing record
+        
+    Returns:
+        Unique line item ID string
+    """
+    # Create a unique identifier based on key fields
+    key_fields = [
+        record.get('resource_id', ''),
+        record.get('service_name', ''),
+        record.get('usage_start_time', ''),
+        record.get('account_id', ''),
+        '{{PROVIDER_NAME}}'
+    ]
+    
+    # Combine key fields and hash
+    combined = "|".join(str(field) for field in key_fields if field is not None)
+    return hashlib.sha256(combined.encode()).hexdigest()[:16]
+
+
+def extract_k8s_labels(record: Dict[str, Any]) -> str:
+    """
+    Extract and format Kubernetes labels from {{PROVIDER_DISPLAY_NAME}} record.
+    
+    Args:
+        record: Raw billing record
+        
+    Returns:
+        JSON-formatted Kubernetes labels string
+    """
+    try:
+        # {{PROVIDER_DISPLAY_NAME}}-specific K8s label extraction logic
+        k8s_labels = record.get('k8s_labels', {})
+        if isinstance(k8s_labels, dict):
+            return json.dumps(k8s_labels)
+        return "{}"
+        
+    except Exception as e:
+        print(f"Error extracting K8s labels: {e}")
+        return "{}"
+
+
+def validate_cbf_record(record: Dict[str, str]) -> None:
+    """
+    Validate that a CBF record has required fields.
+    
+    Args:
+        record: CBF record to validate
+        
+    Raises:
+        ValueError: If validation fails
+    """
+    required_fields = ['time/usage_start', 'cost/cost', 'bill/invoice_id']
+    
+    for field in required_fields:
+        if not record.get(field):
+            raise ValueError(f"Missing required CBF field: {field}")
+    
+    # Validate cost format
+    try:
+        float(record['cost/cost'])
+    except (ValueError, TypeError):
+        raise ValueError(f"Invalid cost format: {record['cost/cost']}")
+        
+    # Validate time format
+    if record.get('time/usage_start'):
+        try:
+            datetime.fromisoformat(record['time/usage_start'].replace('Z', '+00:00'))
+        except (ValueError, TypeError):
+            raise ValueError(f"Invalid time format: {record['time/usage_start']}")
+
+
+def get_service_category(service_name: str) -> str:
+    """
+    Map {{PROVIDER_DISPLAY_NAME}} service names to standard categories.
+    
+    Args:
+        service_name: {{PROVIDER_DISPLAY_NAME}} service name
+        
+    Returns:
+        Standardized service category
+    """
+    # Provider-specific service category mapping
+    category_mapping = {
+        {{SERVICE_CATEGORY_MAPPING_DICT}}
+    }
+    
+    # Look for exact match first
+    if service_name in category_mapping:
+        return category_mapping[service_name]
+    
+    # Look for partial matches
+    service_lower = service_name.lower()
+    for service_key, category in category_mapping.items():
+        if service_key.lower() in service_lower:
+            return category
+    
+    # Default category
+    return "Other"
+
+
+def extract_tags(record: Dict[str, Any]) -> str:
+    """
+    Extract and format tags from {{PROVIDER_DISPLAY_NAME}} record.
+    
+    Args:
+        record: Raw billing record
+        
+    Returns:
+        JSON-formatted tags string
+    """
+    try:
+        # Provider-specific tag extraction logic
+        {{TAG_EXTRACTION_LOGIC}}
+        
+    except Exception as e:
+        print(f"Error extracting tags: {e}")
+        return "{}"

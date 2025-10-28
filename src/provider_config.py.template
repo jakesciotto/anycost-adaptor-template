@@ -1,0 +1,128 @@
+#!/usr/bin/env python3
+"""
+{{PROVIDER_DISPLAY_NAME}} Configuration Module
+
+This module provides secure configuration for {{PROVIDER_DISPLAY_NAME}} API connections using
+environment variables for sensitive data.
+
+Generated from AnyCost Adaptor Template
+"""
+
+import os
+from typing import Dict, Optional
+
+# Load environment variables from .env file
+def load_env_file():
+    """Load environment variables from .env file if it exists."""
+    # Look for .env file relative to the project root
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(current_dir)  # Go up one level from src/
+    env_file = os.path.join(project_root, 'env', '.env')
+    if os.path.exists(env_file):
+        with open(env_file, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#') and '=' in line:
+                    key, value = line.split('=', 1)
+                    if value and not os.getenv(key):
+                        os.environ[key] = value
+
+# Load .env on import
+load_env_file()
+
+
+class {{PROVIDER_CLASS_NAME}}Config:
+    """
+    Secure {{PROVIDER_DISPLAY_NAME}} configuration using environment variables for sensitive data.
+    """
+    
+    def __init__(self):
+        self.config = self._load_config()
+    
+    def _load_config(self) -> Dict[str, str]:
+        """
+        Load {{PROVIDER_DISPLAY_NAME}} configuration from environment variables.
+        
+        Returns:
+            Dict containing {{PROVIDER_DISPLAY_NAME}} configuration
+            
+        Raises:
+            ValueError: If required environment variables are missing
+        """
+        required_vars = [
+            {{REQUIRED_ENV_VARS}}
+        ]
+        
+        missing_vars = [var for var in required_vars if not os.getenv(var)]
+        if missing_vars:
+            raise ValueError(f"Missing required environment variables: {missing_vars}")
+        
+        config = {}
+        
+        # Required configuration
+        {{REQUIRED_CONFIG_MAPPING}}
+        
+        # Optional configuration
+        {{OPTIONAL_CONFIG_MAPPING}}
+        
+        return config
+    
+    def get_config(self) -> Dict[str, str]:
+        """
+        Get the {{PROVIDER_DISPLAY_NAME}} configuration dictionary.
+        
+        Returns:
+            {{PROVIDER_DISPLAY_NAME}} configuration dictionary
+        """
+        return self.config
+    
+    def validate_config(self) -> bool:
+        """
+        Validate that the configuration can connect to {{PROVIDER_DISPLAY_NAME}}.
+        
+        Returns:
+            True if configuration is valid, False otherwise
+        """
+        try:
+            # Provider-specific validation logic
+            {{VALIDATION_LOGIC}}
+            return True
+        except Exception as e:
+            print(f"Configuration validation failed: {e}")
+            return False
+
+
+def get_{{provider_name}}_client():
+    """
+    Create and return a {{PROVIDER_DISPLAY_NAME}} client.
+    
+    Returns:
+        Configured {{PROVIDER_DISPLAY_NAME}} client instance
+        
+    Raises:
+        ValueError: If configuration is invalid
+    """
+    config = {{PROVIDER_CLASS_NAME}}Config()
+    
+    if not config.validate_config():
+        raise ValueError("Invalid {{PROVIDER_DISPLAY_NAME}} configuration")
+    
+    # Provider-specific client initialization
+    {{CLIENT_INITIALIZATION}}
+
+
+def test_{{provider_name}}_connection() -> bool:
+    """
+    Test connection to {{PROVIDER_DISPLAY_NAME}} API.
+    
+    Returns:
+        True if connection successful, False otherwise
+    """
+    try:
+        client = get_{{provider_name}}_client()
+        # Provider-specific connection test
+        {{CONNECTION_TEST}}
+        return True
+    except Exception as e:
+        print(f"{{PROVIDER_DISPLAY_NAME}} connection test failed: {e}")
+        return False
