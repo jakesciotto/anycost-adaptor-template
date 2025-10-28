@@ -58,8 +58,9 @@ python anycost.py csv --input data.csv    # Process CSV files
 
 ## Examples
 
-- **Splunk**: `config/examples/splunk_config.yaml`
-- **SumoLogic**: `config/examples/sumologic_config.yaml`
+- **CSV Processing**: `config/examples/splunk_config.yaml` (DataDog/Splunk pattern)
+- **API Basic Auth**: `config/examples/confluent_config.yaml` (Confluent pattern)  
+- **API Enterprise**: `config/examples/heroku_config.yaml` (Heroku pattern)
 - **Custom**: Copy `config/sample_provider_config.yaml`
 
 ## Support

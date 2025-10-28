@@ -40,6 +40,16 @@ class {{PROVIDER_CLASS_NAME}}Client:
         """
         try:
             # Provider-specific data fetching logic
+            # 
+            # API-based approach (Confluent/Heroku pattern):
+            # headers = {"Authorization": f"Basic {self.client.api_key}"}  # or Bearer
+            # response = requests.get(endpoint_url, headers=headers, params=date_params)
+            # response.raise_for_status() 
+            # return response.json()["data"]  # or direct array
+            #
+            # CSV-based approach (Splunk/DataDog pattern):
+            # return self._load_and_parse_csv_data()
+            #
             {{DATA_FETCHING_LOGIC}}
             
         except Exception as e:

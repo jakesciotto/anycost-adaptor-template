@@ -1,0 +1,62 @@
+# Heroku Enterprise Configuration Template
+# Example configuration based on confirmed Heroku Enterprise API format
+# Use this as reference when setting up a Heroku adaptor
+
+provider_template_example: heroku_enterprise
+api_patterns:
+  # API endpoint pattern from working implementation
+  base_url_template: "https://api.heroku.com/enterprise-accounts/{enterprise_account_id}/usage/daily"
+  auth_method: "bearer_token"
+  headers:
+    accept: "application/vnd.heroku+json; version=3"
+  query_params: ["start", "end"]  # ISO date format
+  
+data_structure:
+  # Daily usage data structure
+  root_is_array: true
+  daily_structure:
+    account_field: "name"
+    date_field: "date"
+    teams_array: "teams"
+    apps_nested: "teams[].apps[]"
+    
+  # Cost categories in daily data
+  cost_categories:
+    - "dynos"           # Per-app dyno usage
+    - "data"            # Per-app data usage  
+    - "addons"          # Per-app addon costs
+    - "partner"         # Per-app partner costs
+    - "private_space"   # Account-level space costs
+    - "shield_space"    # Account-level shield costs
+    - "private_space_credits"  # Space credit costs
+    - "shield_space_credits"   # Shield credit costs
+    
+business_logic_patterns:
+  # Complex dyno pricing logic
+  dyno_pricing:
+    contracted_count: 3000
+    below_contracted_price: 19.0
+    above_contracted_price: 18.0
+    cumulative_tracking: true  # Track across all apps
+    
+  # Fixed cost items
+  fixed_costs:
+    premier_success_plan:
+      monthly_amount: 14846.40
+      valid_until: "2025-10-30"
+      resource_id: "heroku:premier_success_plan"
+      
+  # Resource ID generation patterns
+  resource_id_templates:
+    app_level: "heroku:{service}/{account}/{team}/{app}"
+    account_level: "heroku:{service}/{account}"
+    fixed: "heroku:{service}"
+    
+  # Tag extraction patterns
+  standard_tags:
+    - "heroku_team"
+    - "heroku_app_name"
+    
+  # Date handling
+  time_granularity: "daily"  # Daily usage data
+  usage_date_calculation: "bill_date + 1 day"  # End time is start + 1 day

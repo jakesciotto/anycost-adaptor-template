@@ -75,47 +75,7 @@ dependencies:
   - "requests>=2.28.0"
   - "{{PROVIDER_SDK}}"                # Provider-specific SDK if needed
 
-# Example Configurations for Common Providers
-examples:
-  splunk:
-    provider:
-      name: "splunk"
-      display_name: "Splunk"
-      service_type: "monitoring"
-    api:
-      base_url: "https://{{SPLUNK_HOST}}:8089"
-      auth_method: "basic_auth"
-      rate_limit: "100"
-      timeout: "60"
-    auth:
-      required_env_vars:
-        - "SPLUNK_HOST"
-        - "SPLUNK_USERNAME"
-        - "SPLUNK_PASSWORD"
-    dependencies:
-      - "requests>=2.28.0"
-      - "splunk-sdk>=1.7.0"
-
-  sumologic:
-    provider:
-      name: "sumologic"
-      display_name: "SumoLogic"
-      service_type: "logging"
-    api:
-      base_url: "https://api.{deployment}.sumologic.com/api"
-      auth_method: "basic_auth"
-      rate_limit: "240"
-      timeout: "30"
-    auth:
-      required_env_vars:
-        - "SUMO_ACCESS_KEY"
-        - "SUMO_SECRET_KEY"
-        - "SUMO_DEPLOYMENT"
-        - "SUMO_ORG_ID"
-      optional_env_vars:
-        - "LOG_CONTINUOUS_CREDIT_RATE"
-        - "LOG_FREQUENT_CREDIT_RATE"
-        - "LOG_INFREQUENT_CREDIT_RATE"
-        - "COST_PER_CREDIT"
-    dependencies:
-      - "requests>=2.28.0"
+# For working examples, see config/examples/ directory with confirmed patterns:
+# - confluent_config.yaml - API with Basic auth
+# - heroku_config.yaml - Enterprise API with complex business logic  
+# - splunk_config.yaml - CSV file processing

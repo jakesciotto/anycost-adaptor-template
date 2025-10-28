@@ -1,0 +1,48 @@
+# Confluent Cloud Configuration Template
+# Example configuration based on confirmed Confluent Cloud API format
+# Use this as reference when setting up a Confluent adaptor
+
+provider_template_example: confluent_cloud
+api_patterns:
+  # API endpoint pattern from working implementation
+  base_url: "https://api.confluent.cloud/billing/v1/costs"
+  auth_method: "basic_auth"  # Base64 encoded API key
+  date_params: ["start_date", "end_date"]  # YYYY-MM-DD format
+  
+data_structure:
+  # Response structure from Confluent API
+  root_data_key: "data"  # billing response has data array
+  
+  # Key fields for CBF mapping
+  line_type_field: "line_type"  # support, promo_credit, flink_num_cfus, etc.
+  cost_fields:
+    primary: "amount"         # For usage items
+    alternate: "original_amount"  # For support/credits
+  date_fields:
+    start: "start_date"       # ISO format
+    end: "end_date"           # ISO format
+  resource_fields:
+    id: "resource.id"
+    environment: "resource.environment.id"
+    display_name: "resource.display_name"
+    product: "product"
+  usage_fields:
+    quantity: "quantity"
+    unit: "unit"
+    
+business_logic_patterns:
+  # Line item type handling
+  line_item_mapping:
+    "support": "Support"
+    "promo_credit": "Credit" 
+    "flink_num_cfus": "Usage"
+    "default": "Usage"
+    
+  # Resource ID generation pattern
+  resource_id_template: "confluent:{line_type}/{resource.id}"
+  
+  # Tag extraction patterns
+  standard_tags:
+    - "environment"
+    - "display_name"
+    - "network_access_type"  # for non-flink items

@@ -52,6 +52,23 @@ def transform_single_record(record: Dict[str, Any]) -> Optional[Dict[str, str]]:
     """
     try:
         # Extract and transform core fields
+        # 
+        # Common patterns from confirmed implementations:
+        #
+        # Confluent pattern - line_type-based processing:
+        # line_type = record.get('line_type', '').lower()
+        # cost = record.get('amount') if line_type != 'support' else record.get('original_amount')
+        # resource_id = f"confluent:{line_type}/{record['resource']['id']}"
+        #
+        # Heroku pattern - service-based processing with complex pricing:
+        # service_type = determine_service_type(record) 
+        # cost = calculate_cost_with_business_logic(record, service_type)
+        # resource_id = f"heroku:{service_type}/{account}/{team}/{app}"
+        #
+        # Splunk pattern - cost category iteration:
+        # for category, price in record['costs'].items():
+        #     create_line_item(category, price, monthly_date_range)
+        #
         {{FIELD_EXTRACTION_LOGIC}}
         
         # Build CBF record (CloudZero AnyCost format)

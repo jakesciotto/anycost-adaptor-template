@@ -1,32 +1,57 @@
-# Example configuration for Splunk AnyCost Adaptor
-# Usage: python generate_adaptor.py --config config/examples/splunk_config.yaml --output ../splunk-anycost-adaptor
+# Splunk Configuration Template
+# Example configuration based on confirmed Splunk (DataDog) CSV format
+# Use this as reference when setting up a Splunk/DataDog adaptor
 
-provider:
-  name: "splunk"
-  display_name: "Splunk"
-  service_type: "monitoring"
-
-api:
-  base_url: "https://{{SPLUNK_HOST}}:8089"
-  auth_method: "basic_auth"
-  rate_limit: "100"
-  timeout: "60"
-
-auth:
-  required_env_vars:
-    - "SPLUNK_HOST"
-    - "SPLUNK_USERNAME"  
-    - "SPLUNK_PASSWORD"
-  optional_env_vars:
-    - "SPLUNK_PORT"
-    - "SPLUNK_SCHEME"
-
-data:
-  source_format: "json"
-  time_field: "timestamp"
-  cost_field: "license_usage"
-  resource_field: "sourcetype"
-
+provider_template_example: splunk_datadog_csv
+data_patterns:
+  # CSV-based data source (not API)
+  source_format: "csv"
+  input_method: "file_upload"  # Manual CSV file upload
+  
+  # CSV structure from working implementation
+  csv_structure:
+    header_rows_to_skip: 2  # First 2 rows are headers
+    date_column: 0          # "Month" column (e.g., "Feb 2024")
+    date_format: "%b %Y"    # Parse format for month
+    
+  # Cost categories as CSV columns (after month column)
+  cost_categories:
+    hosts: 1                        # Column index
+    containers: 2
+    custom_metrics: 3
+    apm_hosts: 4
+    monitoring_metric_sets: 5
+    troubleshooting_metric_sets: 6
+    trace_volume_mb: 7
+    profiling_volume: 8
+    rum_sessions: 9
+    browser_test_runs: 10
+    api_test_runs: 11
+    uptime_test_runs: 12
+    
+business_logic_patterns:
+  # Data processing approach
+  processing_method: "monthly_aggregation"
+  
+  # Cost extraction with number cleaning
+  cost_cleaning: "extract_digits_only"  # Remove non-numeric characters
+  
+  # CBF mapping approach
+  cbf_mapping:
+    service_template: "splunk:{cost_category}"
+    lineitem_type: "usage"
+    time_span: "monthly"  # Entire month usage
+    resource_fields:
+      resource_id: null     # No specific resource ID
+      resource_account: null
+      usage_units: null
+      usage_amount: null
+      
+  # Date handling
+  time_calculation:
+    usage_start: "first_day_of_month"
+    usage_end: "last_day_parameter"  # From input parameter
+    
 dependencies:
-  - "requests>=2.28.0"
-  - "splunk-sdk>=1.7.0"
+  - "csv"  # Built-in Python module
+  # No external API dependencies - file-based processing
