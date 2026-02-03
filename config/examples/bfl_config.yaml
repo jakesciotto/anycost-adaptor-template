@@ -1,0 +1,92 @@
+# Black Forest Labs (BFL) API Configuration
+# Image generation API with credit-based billing
+
+provider:
+  name: "bfl"
+  display_name: "Black Forest Labs"
+  service_type: "ai-image-generation"
+
+# API Configuration
+api:
+  base_url: "https://api.bfl.ai"
+  auth_method: "api_key"
+  rate_limit: "10"
+  timeout: "30"
+
+# Authentication Requirements
+auth:
+  required_env_vars:
+    - "BFL_API_KEY"
+  optional_env_vars: []
+
+# Data Configuration
+data:
+  source_format: "json"
+  time_field: "timestamp"
+  cost_field: "cost"
+  resource_field: "service"
+
+# CBF (Common Billing Format) Field Mappings
+cbf_mapping:
+  # Required fields
+  "time/usage_start": "snapshot_timestamp"
+  "cost/cost": "credits_consumed * 0.01"  # Full undiscounted cost
+  "bill/invoice_id": "f'bfl-{month}'"
+
+  # Line item columns
+  "lineitem/id": "f'bfl-{timestamp}'"
+  "lineitem/type": "'Usage'"
+  "lineitem/description": "'BFL API Credit Consumption'"
+  "lineitem/cloud_provider": "'bfl'"
+
+  # Resource columns
+  "resource/id": "'bfl:image-generation'"
+  "resource/service": "'image-generation'"
+  "resource/account": "'default'"
+  "resource/region": "'global'"
+  "resource/usage_family": "'api-credits'"
+
+  # Action columns
+  "action/operation": "'credit-consumption'"
+  "action/usage_type": "'api-credits'"
+
+  # Usage columns
+  "usage/amount": "credits_consumed"
+  "usage/units": "'credits'"
+
+  # Additional cost columns
+  "cost/discounted_cost": "credits_consumed * 0.007"  # 30% discount (pay 70%)
+  "cost/amortized_cost": ""
+  "cost/on_demand_cost": ""
+
+# Dependencies
+dependencies:
+  - "requests>=2.28.0"
+  - "python-dotenv>=0.19.0"
+
+# BFL Specific Configuration
+bfl_config:
+  # CloudZero connection ID
+  cloudzero_connection_id: ""
+
+  # Pricing information (credits per model)
+  model_pricing:
+    flux_kontext_pro: 4
+    flux_kontext_max: 8
+    flux_1_1_pro: 4
+    flux_1_1_ultra: 6
+    flux_1_1_raw: 6
+    flux_fill_pro: 5
+    flux_canny_pro: 5
+    flux_depth_pro: 5
+    flux_dev: 2.5
+    flux_pro_finetuned: 6
+    flux_1_1_ultra_finetuned: 7
+
+  # Pricing calculation
+  credit_to_usd: 0.01  # 1 credit = $0.01 USD
+  discount_rate: 0.30  # 30% discount
+  discounted_rate: 0.007  # 1 credit = $0.007 after 30% discount
+
+  # Snapshot storage
+  snapshot_file: "data/bfl_snapshots.csv"
