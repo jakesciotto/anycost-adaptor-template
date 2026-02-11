@@ -1,0 +1,128 @@
+# ElevenLabs Configuration
+# Text-to-speech / voice AI API with character-based billing
+
+provider:
+  name: "elevenlabs"
+  display_name: "ElevenLabs"
+  service_type: "ai-voice-generation"
+
+# API Configuration
+api:
+  base_url: "https://api.elevenlabs.io/v1"
+  auth_method: "api_key_header"  # xi-api-key header
+  rate_limit: "10"
+  timeout: "30"
+
+# Authentication Requirements
+auth:
+  required_env_vars:
+    - "ELEVENLABS_API_KEY"
+  optional_env_vars: []
+  # Auth header: xi-api-key: <ELEVENLABS_API_KEY>
+
+# Endpoints
+endpoints:
+  # GET /v1/user/subscription - subscription & character usage
+  subscription: "/user/subscription"
+  # GET /v1/user - user profile with nested subscription object
+  user: "/user"
+
+# Subscription response fields (GET /v1/user/subscription)
+# tier:                              string   - subscription tier name
+# status:                            enum     - trialing, active, incomplete, past_due, free, free_disabled
+# currency:                          enum     - usd, eur, inr
+# billing_period:                    enum     - monthly_period, 3_month_period, 6_month_period, annual_period
+# character_refresh_period:          enum     - same as billing_period
+# character_count:                   integer  - characters used in current billing period
+# character_limit:                   integer  - max characters allowed in current billing period
+# max_character_limit_extension:     integer  - max overage characters allowed
+# can_extend_character_limit:        boolean
+# allowed_to_extend_character_limit: boolean
+# next_character_count_reset_unix:   integer  - unix timestamp of next character reset
+# voice_slots_used:                  integer
+# voice_limit:                       integer
+# professional_voice_slots_used:     integer
+# professional_voice_limit:          integer
+# max_voice_add_edits:               integer
+# voice_add_edit_counter:            integer
+# can_use_instant_voice_cloning:     boolean
+# can_use_professional_voice_cloning: boolean
+# next_invoice:                      object   - InvoiceResponse
+# open_invoices:                     array    - InvoiceResponse[]
+# has_open_invoices:                 boolean
+
+# User response fields (GET /v1/user)
+# user_id:          string   - unique user identifier
+# subscription:     object   - nested SubscriptionResponse (same fields as above)
+# first_name:       string
+# xi_api_key:       string   - DO NOT log or store
+# is_api_key_hashed: boolean
+# created_at:       integer  - unix timestamp
+
+# Data Configuration
+data:
+  source_format: "json"
+  time_field: "next_character_count_reset_unix"
+  cost_field: "character_count"
+  resource_field: "tier"
+
+# CBF (Common Billing Format) Field Mappings
+cbf_mapping:
+  # Required fields
+  "time/usage_start": "snapshot_timestamp"
+  "cost/cost": "characters_consumed * character_to_usd"
+  "bill/invoice_id": "f'elevenlabs-{month}'"
+
+  # Line item columns
+  "lineitem/id": "f'elevenlabs-{timestamp}'"
+  "lineitem/type": "'Usage'"
+  "lineitem/description": "'ElevenLabs Character Consumption'"
+  "lineitem/cloud_provider": "'elevenlabs'"
+
+  # Resource columns
+  "resource/id": "'elevenlabs:voice-generation'"
+  "resource/service": "'voice-generation'"
+  "resource/account": "'default'"
+  "resource/region": "'global'"
+  "resource/usage_family": "'api-characters'"
+
+  # Usage columns
+  "usage/amount": "characters_consumed"
+  "usage/units": "'characters'"
+
+  # Additional cost columns
+  "cost/amortized_cost": ""
+  "cost/on_demand_cost": ""
+
+# Dependencies
+dependencies:
+  - "requests>=2.28.0"
+  - "python-dotenv>=0.19.0"
+
+# ElevenLabs Specific Configuration
+elevenlabs_config:
+  # CloudZero connection ID
+  cloudzero_connection_id: ""
+
+  # API endpoints for usage data
+  subscription_endpoint: "/user/subscription"
+  user_endpoint: "/user"
+
+  # Character-to-USD conversion
+  # ElevenLabs pricing varies by plan tier. Determine by dividing
+  # the monthly plan cost by the character_limit for the tier.
+  # Example tiers (as of early 2025):
+  #   Free:       10,000 chars/mo   ($0)
+  #   Starter:    30,000 chars/mo   ($5/mo)   ~ $0.000167/char
+  #   Creator:    100,000 chars/mo  ($22/mo)  ~ $0.000220/char
+  #   Pro:        500,000 chars/mo  ($99/mo)  ~ $0.000198/char
+  #   Scale:      2,000,000 chars/mo ($330/mo) ~ $0.000165/char
+  #   Business:   custom
+  character_to_usd: 0.0  # TODO: set based on actual plan tier pricing
+
+  # Contract details (if applicable)
+  contract_value_usd: 0
+  contract_start: ""
+
+  # Snapshot storage
+  snapshot_file: "data/elevenlabs_snapshots.csv"

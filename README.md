@@ -11,7 +11,7 @@ python generate_adaptor.py --config config/examples/splunk_config.yaml --output 
 
 # 2. Implement your provider
 cd ../splunk-adaptor
-pip install -r requirements.txt
+pip install .
 cp env/.env.example env/.env  # Add credentials
 # Edit src/splunk_*.py files (replace TODO comments)
 

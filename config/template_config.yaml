@@ -51,10 +51,6 @@ cbf_mapping:
   "resource/region": "{{RESOURCE_REGION_MAPPING}}"      # Resource region
   "resource/usage_family": "{{RESOURCE_USAGE_FAMILY_MAPPING}}"  # Service subdivision
   
-  # Action columns (optional)
-  "action/operation": "{{ACTION_OPERATION_MAPPING}}"    # Action performed
-  "action/usage_type": "{{ACTION_USAGE_TYPE_MAPPING}}"  # Operation subdivision
-  
   # Usage columns (optional)
   "usage/amount": "{{USAGE_AMOUNT_MAPPING}}"            # Numeric usage value
   "usage/units": "{{USAGE_UNITS_MAPPING}}"              # Usage measurement units

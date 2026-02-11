@@ -1,0 +1,12 @@
+[project]
+name = "{{PROVIDER_NAME}}-anycost-adaptor"
+version = "0.1.0"
+description = "{{PROVIDER_DISPLAY_NAME}} AnyCost Stream Adaptor for CloudZero"
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.28.0",
+    {{PROVIDER_DEPENDENCIES}}
+]
+
+[project.scripts]
+anycost = "anycost:main"

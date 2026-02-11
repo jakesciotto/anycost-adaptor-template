@@ -46,10 +46,6 @@ cbf_mapping:
   "resource/region": "'global'"
   "resource/usage_family": "'api-credits'"
 
-  # Action columns
-  "action/operation": "'credit-consumption'"
-  "action/usage_type": "'api-credits'"
-
   # Usage columns
   "usage/amount": "credits_consumed"
   "usage/units": "'credits'"

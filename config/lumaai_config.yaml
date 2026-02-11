@@ -1,0 +1,81 @@
+# Luma AI Configuration
+# Video/image generation API with credit-based billing
+
+provider:
+  name: "lumaai"
+  display_name: "Luma"
+  service_type: "ai-video-generation"
+
+# API Configuration
+api:
+  base_url: "https://api.lumalabs.ai/dream-machine/v1"
+  auth_method: "bearer_jwt"
+  rate_limit: "10"
+  timeout: "30"
+
+# Authentication Requirements
+auth:
+  required_env_vars:
+    - "LUMAAI_API_KEY"
+  optional_env_vars: []
+
+# Data Configuration
+data:
+  source_format: "json"
+  time_field: "timestamp"
+  cost_field: "credit_balance"
+  resource_field: "service"
+
+# CBF (Common Billing Format) Field Mappings
+cbf_mapping:
+  # Required fields
+  "time/usage_start": "snapshot_timestamp"
+  "cost/cost": "credits_consumed * credit_to_usd"
+  "bill/invoice_id": "f'lumaai-{month}'"
+
+  # Line item columns
+  "lineitem/id": "f'lumaai-{timestamp}'"
+  "lineitem/type": "'Usage'"
+  "lineitem/description": "'Luma AI Credit Consumption'"
+  "lineitem/cloud_provider": "'lumaai'"
+
+  # Resource columns
+  "resource/id": "'lumaai:video-generation'"
+  "resource/service": "'video-generation'"
+  "resource/account": "'default'"
+  "resource/region": "'global'"
+  "resource/usage_family": "'api-credits'"
+
+  # Usage columns
+  "usage/amount": "credits_consumed"
+  "usage/units": "'credits'"
+
+  # Additional cost columns
+  "cost/amortized_cost": ""
+  "cost/on_demand_cost": ""
+
+# Dependencies
+dependencies:
+  - "requests>=2.28.0"
+  - "python-dotenv>=0.19.0"
+
+# Luma AI Specific Configuration
+lumaai_config:
+  # CloudZero connection ID
+  cloudzero_connection_id: ""
+
+  # API endpoint for credit balance
+  credits_endpoint: "/credits"
+
+  # Response: { "credit_balance": <float> }
+  # Credit-to-USD conversion unknown — determine by comparing a known
+  # generation cost (e.g. 720p 5s Ray 2 video = ~$0.71) against the
+  # credit delta before/after the generation.
+  credit_to_usd: 0.0  # TODO: set once conversion rate is confirmed
+
+  # Contract: $1.3M commitment starting 12/8/2025
+  contract_value_usd: 1300000
+  contract_start: "2025-12-08"
+
+  # Snapshot storage
+  snapshot_file: "data/lumaai_snapshots.csv"

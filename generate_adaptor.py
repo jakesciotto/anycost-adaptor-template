@@ -53,8 +53,8 @@ def generate_template_variables(config: Dict[str, Any]) -> Dict[str, str]:
         'REQUIRED_ENV_VARS': format_env_vars_list(config['auth']['required_env_vars']),
         'OPTIONAL_ENV_VARS': format_env_vars_list(config['auth'].get('optional_env_vars', [])),
         
-        # Dependencies
-        'PROVIDER_DEPENDENCIES': '\n'.join(list(dict.fromkeys(config.get('dependencies', [])))),
+        # Dependencies (formatted as pyproject.toml array entries)
+        'PROVIDER_DEPENDENCIES': '\n    '.join(f'"{dep}",' for dep in list(dict.fromkeys(config.get('dependencies', [])))),
         
         # Placeholders for user to fill in
         'PROVIDER_IMPORTS': f'# TODO: Add {provider_display_name} SDK imports here',
@@ -201,7 +201,7 @@ def generate_adaptor(config_path: str, output_dir: str):
         'src/provider_transform.py.template': f'src/{provider_name}_transform.py',
         'src/provider_anycost_adaptor.py.template': f'src/{provider_name}_anycost_adaptor.py',
         'templates/anycost.py.template': 'anycost.py',
-        'templates/requirements.txt.template': 'requirements.txt',
+        'templates/pyproject.toml.template': 'pyproject.toml',
     }
     
     # Process template files
@@ -252,7 +252,7 @@ def generate_adaptor(config_path: str, output_dir: str):
     print(f"1. cd {output_path}")
     print(f"2. cp env/.env.example env/.env")
     print(f"3. Edit env/.env with your {config['provider']['display_name']} credentials")
-    print(f"4. pip install -r requirements.txt")
+    print(f"4. pip install .")
     print(f"5. Customize the TODO sections in the generated files")
     print(f"6. python anycost.py test")
 
@@ -304,7 +304,7 @@ Generated from AnyCost Adaptor Template.
 
 1. **Install dependencies:**
    ```bash
-   pip install -r requirements.txt
+   pip install .
    ```
 
 2. **Configure credentials:**
