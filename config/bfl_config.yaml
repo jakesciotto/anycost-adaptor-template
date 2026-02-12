@@ -85,4 +85,4 @@ bfl_config:
   discounted_rate: 0.007  # 1 credit = $0.007 after 30% discount
 
   # Snapshot storage
-  snapshot_file: "data/bfl_snapshots.csv"
+  snapshot_file: "state/bfl_snapshots.csv"

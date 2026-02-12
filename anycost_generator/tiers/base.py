@@ -59,4 +59,4 @@ class TierStrategy(ABC):
 
     def get_directories(self) -> list[str]:
         """Directories to create in the output."""
-        return ["env", "input", "output", "tests", "src", "data"]
+        return ["env", "input", "output", "tests", "src", "state"]

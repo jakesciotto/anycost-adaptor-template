@@ -40,7 +40,7 @@ credit_config:
   credit_to_usd: 0.0
   contract_value_usd: 1300000
   contract_start: "2025-12-08"
-  snapshot_file: "data/lumaai_snapshots.csv"
+  snapshot_file: "state/lumaai_snapshots.csv"
 
 dependencies:
   - "requests>=2.28.0"

@@ -78,4 +78,4 @@ lumaai_config:
   contract_start: "2025-12-08"
 
   # Snapshot storage
-  snapshot_file: "data/lumaai_snapshots.csv"
+  snapshot_file: "state/lumaai_snapshots.csv"

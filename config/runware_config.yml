@@ -71,7 +71,7 @@ runware_config:
   discounted_rate: 0.007  # 1 credit = $0.007 after 30% discount
 
   # Snapshot storage
-  snapshot_file: "data/runware_snapshots.csv"
+  snapshot_file: "state/runware_snapshots.csv"
 
   # Additional tracking fields
   track_requests: true  # Track request counts in addition to credits

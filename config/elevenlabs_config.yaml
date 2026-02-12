@@ -125,4 +125,4 @@ elevenlabs_config:
   contract_start: ""
 
   # Snapshot storage
-  snapshot_file: "data/elevenlabs_snapshots.csv"
+  snapshot_file: "state/elevenlabs_snapshots.csv"

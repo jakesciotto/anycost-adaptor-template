@@ -5,6 +5,12 @@ Generate CloudZero AnyCost Stream adaptors for any provider. Define your provide
 ## Install
 
 ```bash
+pip install .
+```
+
+For development (includes pytest):
+
+```bash
 pip install -e ".[dev]"
 ```
 

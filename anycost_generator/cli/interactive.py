@@ -237,7 +237,7 @@ def _prompt_credit_config(provider_name: str) -> dict:
         "discount_rate": discount_rate_val,
         "discounted_rate": round(discounted_rate, 6),
         "token_pools": token_pools,
-        "snapshot_file": f"data/{provider_name}_snapshots.csv",
+        "snapshot_file": f"state/{provider_name}_snapshots.csv",
     }
 
 

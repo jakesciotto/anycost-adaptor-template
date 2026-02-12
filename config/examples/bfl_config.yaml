@@ -43,7 +43,7 @@ credit_config:
   credit_to_usd: 0.01
   discount_rate: 0.30
   discounted_rate: 0.007
-  snapshot_file: "data/bfl_snapshots.csv"
+  snapshot_file: "state/bfl_snapshots.csv"
   model_pricing:
     flux_kontext_pro: 4
     flux_kontext_max: 8

@@ -41,7 +41,7 @@ credit_config:
   credit_to_usd: 0.01
   discount_rate: 0.30
   discounted_rate: 0.007
-  snapshot_file: "data/runware_snapshots.csv"
+  snapshot_file: "state/runware_snapshots.csv"
 
 dependencies:
   - "requests>=2.28.0"

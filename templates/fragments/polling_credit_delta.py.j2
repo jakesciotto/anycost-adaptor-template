@@ -38,7 +38,7 @@
         timestamp = datetime.utcnow().isoformat() + "Z"
 
         # Load previous snapshot
-        snapshot_path = Path("{{ credit_config.snapshot_file if credit_config else 'data/snapshots.csv' }}")
+        snapshot_path = Path("{{ credit_config.snapshot_file if credit_config else 'state/snapshots.csv' }}")
         previous_balance = None
         if snapshot_path.exists():
             with open(snapshot_path, "r") as f:

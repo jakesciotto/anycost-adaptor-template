@@ -136,7 +136,7 @@ class CreditConfig(BaseModel):
     token_pools: list[TokenPool] = Field(default_factory=list)
     contract_value_usd: float = Field(default=0)
     contract_start: str = Field(default="")
-    snapshot_file: str = Field(default="data/snapshots.csv")
+    snapshot_file: str = Field(default="state/snapshots.csv")
     model_pricing: dict[str, float] = Field(default_factory=dict)
 
 
