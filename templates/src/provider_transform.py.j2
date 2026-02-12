@@ -2,6 +2,7 @@
 {{ provider.display_name }} AnyCost Adaptor - Data Transformation
 
 Transforms {{ provider.display_name }} data into CloudZero Common Billing Format (CBF).
+Follows the CBF spec: https://docs.cloudzero.com/docs/anycost-common-bill-format-cbf
 {% if tier.value == "tier1_credit" %}
 Tier 1 (Credit Polling): converts credit delta snapshots to CBF records.
 {% elif tier.value == "tier2_structured" %}
@@ -19,29 +20,42 @@ from datetime import datetime
 from pathlib import Path
 
 
+# CBF columns in spec-defined order. Required fields first, then recommended,
+# then optional. Dynamic tag columns (resource/tag:<key>) are appended at write time.
+CBF_COLUMN_ORDER = [
+    # Required
+    "cost/cost",
+    "time/usage_start",
+    "resource/id",
+    # Recommended
+    "resource/account",
+    "lineitem/type",
+    "resource/service",
+    "usage/amount",
+    "usage/units",
+    # Optional -- dimensions
+    "bill/invoice_id",
+    "lineitem/description",
+    "lineitem/cloud_provider",
+    "resource/region",
+    "resource/usage_family",
+    "action/operation",
+    "action/usage_type",
+    # Optional -- cost variants
+    "cost/discounted_cost",
+    "cost/amortized_cost",
+    "cost/discounted_amortized_cost",
+    "cost/on_demand_cost",
+    # Optional -- Kubernetes
+    "k8s/cluster",
+    "k8s/namespace",
+    "k8s/deployment",
+    "k8s/labels",
+]
+
+
 class {{ provider_class_name }}Transform:
     """Transform {{ provider.display_name }} data to CloudZero CBF format."""
-
-    # CBF column headers
-    CBF_HEADERS = [
-        "time/usage_start",
-        "cost/cost",
-        "bill/invoice_id",
-        "lineitem/id",
-        "lineitem/type",
-        "lineitem/description",
-        "lineitem/cloud_provider",
-        "resource/id",
-        "resource/service",
-        "resource/account",
-        "resource/region",
-        "resource/usage_family",
-        "usage/amount",
-        "usage/units",
-        "cost/discounted_cost",
-        "cost/amortized_cost",
-        "cost/on_demand_cost",
-    ]
 
 {% if tier.value == "tier1_credit" %}
 {% include 'fragments/transform_simple.py.j2' %}
@@ -54,12 +68,31 @@ class {{ provider_class_name }}Transform:
 {% include 'fragments/cbf_record_builder.py.j2' %}
 
     def write_cbf(self, records: list[dict], output_path: str):
-        """Write CBF records to a CSV file."""
+        """Write CBF records to a CSV file.
+
+        Builds the header dynamically: standard CBF columns that have at least
+        one non-empty value across all records, plus any resource/tag:<key>
+        columns discovered in the records.
+        """
         output = Path(output_path)
         output.parent.mkdir(parents=True, exist_ok=True)
 
+        if not records:
+            print(f"No records to write to {output}")
+            return str(output)
+
+        # Collect all keys present across records
+        all_keys: set[str] = set()
+        for rec in records:
+            all_keys.update(rec.keys())
+
+        # Build ordered header: known columns first (in spec order), then tags
+        fieldnames = [col for col in CBF_COLUMN_ORDER if col in all_keys]
+        tag_cols = sorted(k for k in all_keys if k.startswith("resource/tag:"))
+        fieldnames.extend(tag_cols)
+
         with open(output, "w", newline="") as f:
-            writer = csv.DictWriter(f, fieldnames=self.CBF_HEADERS)
+            writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
             writer.writeheader()
             writer.writerows(records)
 

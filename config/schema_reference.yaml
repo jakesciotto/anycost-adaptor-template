@@ -1,5 +1,6 @@
 # AnyCost Adaptor Generator -- Config Schema Reference
-# This documents all fields accepted by the unified config schema.
+# Field names align with the CloudZero CBF spec:
+# https://docs.cloudzero.com/docs/anycost-common-bill-format-cbf
 # See config/examples/ for working examples of each tier.
 
 # ---- Required top-level sections ----
@@ -29,27 +30,37 @@ data:                              # OPTIONAL (has defaults)
 
 cbf_mapping:                       # OPTIONAL (has defaults)
   # Required CBF fields
-  time_usage_start: ""
-  cost_cost: ""
-  bill_invoice_id: ""
-  # Line item fields
-  lineitem_id: ""
-  lineitem_type: "Usage"
-  lineitem_description: ""
-  lineitem_cloud_provider: ""
-  # Resource fields
-  resource_id: ""
-  resource_service: ""
-  resource_account: "default"
-  resource_region: "global"
-  resource_usage_family: ""
-  # Usage fields
-  usage_amount: ""
-  usage_units: ""
-  # Additional cost fields
-  cost_discounted_cost: ""
-  cost_amortized_cost: ""
-  cost_on_demand_cost: ""
+  cost_cost: ""                    # Cost expression (required)
+  time_usage_start: ""             # ISO 8601 UTC timestamp (required)
+  # Required when tags are present
+  resource_id: ""                  # Unique resource identifier
+  # Recommended
+  resource_account: "default"      # Most specific account/project designation
+  lineitem_type: "Usage"           # Usage | Tax | Support | Purchase | Credit
+  resource_service: ""             # Cloud service category
+  usage_amount: ""                 # Numeric consumption value
+  usage_units: ""                  # Unit descriptor (e.g. "credits", "characters", "GB")
+  # Optional -- dimensions
+  bill_invoice_id: ""              # Unique bill identifier
+  lineitem_description: ""         # Additional line item info
+  lineitem_cloud_provider: ""      # Provider identifier
+  resource_region: "global"        # Geographic region (free-form)
+  resource_usage_family: ""        # Subdivision of service category
+  action_operation: ""             # Action performed on the resource
+  action_usage_type: ""            # Subdivision of usage family
+  # Optional -- cost variants (omitted from output if empty)
+  cost_discounted_cost: ""         # Net cost after discounts/credits
+  cost_amortized_cost: ""          # Effective cost after committed use amortization
+  cost_discounted_amortized_cost: "" # Net effective cost with both discounts and amortization
+  cost_on_demand_cost: ""          # Cost without any reductions
+  # Optional -- Kubernetes (omitted from output if empty)
+  k8s_cluster: ""                  # Kubernetes cluster name
+  k8s_namespace: ""                # Kubernetes namespace
+  k8s_deployment: ""               # Kubernetes deployment
+  k8s_labels: ""                   # Kubernetes labels (JSON string)
+  # Optional -- custom resource tags
+  # Emitted as resource/tag:<key> columns. resource/id must be unique per tag combination.
+  resource_tags: {}                # {tag_name: "source_field_name", ...}
 
 dependencies: []                   # Pip packages (default: requests, python-dotenv)
 
@@ -78,7 +89,7 @@ structured_config:
     date: {}                       # {start: "start_date", end: "end_date"}
     resource: {}                   # {id: "resource.id", ...}
     usage: {}                      # {quantity: "quantity", unit: "unit"}
-  tags: []                         # Fields to extract as tags
+  tags: []                         # Fields to extract as resource/tag:<key> columns
   resource_id_template: ""         # Template for resource ID generation
 
 # ---- Tier 3: Enterprise ----
@@ -94,4 +105,4 @@ enterprise_config:
   cost_categories: []              # List of cost category names
   aggregation_method: "daily"      # daily | monthly
   resource_id_templates: {}        # {app_level: "...", account_level: "..."}
-  tags: []                         # Fields to extract as tags
+  tags: []                         # Fields to extract as resource/tag:<key> columns

@@ -41,12 +41,27 @@
         line_type = item.get("line_type", "Usage")
 {% endif %}
 
+{% if structured_config and structured_config.field_mappings.usage %}
+        # Extract usage
+        usage_amount = float(item.get("{{ structured_config.field_mappings.usage.get('quantity', 'quantity') }}", 0))
+        usage_units = item.get("{{ structured_config.field_mappings.usage.get('unit', 'unit') }}", "")
+{% else %}
+        usage_amount = float(item.get("quantity", 0))
+        usage_units = item.get("unit", "")
+{% endif %}
+
+        # Extract resource tags
+        tags = self._extract_tags(item)
+
         return self._build_cbf_record(
             timestamp=timestamp,
             cost=cost,
             month=month,
             line_type=line_type,
             resource_id=self._extract_resource_id(item),
+            usage_amount=usage_amount,
+            usage_units=usage_units,
+            tags=tags,
         )
 
     def _extract_resource_id(self, item: dict) -> str:
@@ -55,3 +70,20 @@
         # TODO: Implement template: {{ structured_config.resource_id_template }}
 {% endif %}
         return item.get("resource_id", item.get("id", ""))
+
+    def _extract_tags(self, item: dict) -> dict:
+        """Extract resource tags from a line item."""
+        tags = {}
+{% if structured_config and structured_config.tags %}
+{% for tag_field in structured_config.tags %}
+        if item.get("{{ tag_field }}"):
+            tags["{{ tag_field }}"] = str(item["{{ tag_field }}"])
+{% endfor %}
+{% endif %}
+{% if cbf_mapping.resource_tags %}
+{% for tag_key, tag_expr in cbf_mapping.resource_tags.items() %}
+        if item.get("{{ tag_expr }}"):
+            tags["{{ tag_key }}"] = str(item["{{ tag_expr }}"])
+{% endfor %}
+{% endif %}
+        return tags if tags else None

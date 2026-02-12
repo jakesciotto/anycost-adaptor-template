@@ -16,6 +16,9 @@
         # Process each cost category
         cost_categories = {{ enterprise_config.cost_categories }}
         for item in usage_data:
+            # Extract resource tags for this item
+            tags = self._extract_tags(item)
+
             for category in cost_categories:
                 cost = self._extract_cost(item, category)
                 if cost and cost > 0:
@@ -25,14 +28,17 @@
                         month=month,
                         resource_id=f"{{ provider.name }}:{category}",
                         service=category,
+                        tags=tags,
                     )
                     records.append(record)
 {% else %}
         for item in usage_data:
+            tags = self._extract_tags(item)
             record = self._build_cbf_record(
                 timestamp=item.get("date", ""),
                 cost=float(item.get("cost", 0)),
                 month=month,
+                tags=tags,
             )
             records.append(record)
 {% endif %}
@@ -61,3 +67,20 @@
             cleaned = "".join(c for c in raw if c.isdigit() or c == ".")
             return float(cleaned) if cleaned else 0.0
         return float(raw) if raw else 0.0
+
+    def _extract_tags(self, item: dict) -> dict:
+        """Extract resource tags from a usage record."""
+        tags = {}
+{% if enterprise_config and enterprise_config.tags %}
+{% for tag_field in enterprise_config.tags %}
+        if item.get("{{ tag_field }}"):
+            tags["{{ tag_field }}"] = str(item["{{ tag_field }}"])
+{% endfor %}
+{% endif %}
+{% if cbf_mapping.resource_tags %}
+{% for tag_key, tag_expr in cbf_mapping.resource_tags.items() %}
+        if item.get("{{ tag_expr }}"):
+            tags["{{ tag_key }}"] = str(item["{{ tag_expr }}"])
+{% endfor %}
+{% endif %}
+        return tags if tags else None

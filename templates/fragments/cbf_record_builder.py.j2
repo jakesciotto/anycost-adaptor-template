@@ -5,48 +5,125 @@
         month: str,
         credits_consumed: float = 0,
         discounted_cost: float = 0,
+        amortized_cost: float = 0,
+        on_demand_cost: float = 0,
+        discounted_amortized_cost: float = 0,
         line_type: str = "Usage",
         resource_id: str = "",
         service: str = "",
         description: str = "",
         account: str = "default",
         region: str = "global",
+        usage_amount: float = 0,
+        usage_units: str = "",
+        operation: str = "",
+        usage_type: str = "",
+        k8s_cluster: str = "",
+        k8s_namespace: str = "",
+        k8s_deployment: str = "",
+        k8s_labels: str = "",
+        tags: dict | None = None,
     ) -> dict:
         """Build a single CBF record dict.
 
+        Follows the CloudZero Common Billing Format spec:
+        https://docs.cloudzero.com/docs/anycost-common-bill-format-cbf
+
+        When resource tags are present, resource/id is required and must be
+        unique per tag combination. A UUID4 is generated for each record.
+
         Args:
-            timestamp: ISO 8601 timestamp for usage start.
+            timestamp: ISO 8601 UTC timestamp for usage start.
             cost: Cost amount in USD.
             month: Month string (YYYY-MM) for invoice ID.
             credits_consumed: Number of credits consumed (tier 1).
-            discounted_cost: Discounted cost amount (tier 1).
-            line_type: Line item type (Usage, Credit, Support, etc.).
-            resource_id: Resource identifier.
+            discounted_cost: Discounted cost amount.
+            amortized_cost: Amortized cost amount.
+            on_demand_cost: On-demand cost amount.
+            discounted_amortized_cost: Discounted amortized cost.
+            line_type: Line item type (Usage, Tax, Support, Purchase, Credit).
+            resource_id: Resource identifier. If empty, one is generated.
             service: Service name.
             description: Line item description.
             account: Account identifier.
             region: Region identifier.
+            usage_amount: Numeric usage value.
+            usage_units: Unit descriptor for usage amount.
+            operation: Action/operation performed.
+            usage_type: Subdivision of usage family.
+            k8s_cluster: Kubernetes cluster name.
+            k8s_namespace: Kubernetes namespace.
+            k8s_deployment: Kubernetes deployment.
+            k8s_labels: Kubernetes labels (JSON string).
+            tags: Dict of resource tag key -> value for resource/tag:<key> columns.
         """
-        # Generate a unique line item ID
-        raw_id = f"{{ provider.name }}-{timestamp}-{resource_id}-{cost}"
-        lineitem_id = hashlib.md5(raw_id.encode()).hexdigest()[:16]
+        import uuid
 
-        return {
-            "time/usage_start": timestamp,
+        # resource/id is required when tags are present.
+        # Use a deterministic UUID4 per record to guarantee uniqueness.
+        if not resource_id:
+            resource_id = f"{{ provider.name }}:{{ provider.service_type }}"
+        if tags:
+            resource_id = f"{resource_id}:{uuid.uuid4()}"
+
+        # Required + recommended fields (always present)
+        record = {
             "cost/cost": f"{cost:.6f}",
-            "bill/invoice_id": f"{{ provider.name }}-{month}",
-            "lineitem/id": f"{{ provider.name }}-{lineitem_id}",
-            "lineitem/type": line_type,
-            "lineitem/description": description or f"{{ provider.display_name }} {service or '{{ provider.service_type }}'} usage",
-            "lineitem/cloud_provider": "{{ provider.name }}",
-            "resource/id": resource_id or "{{ provider.name }}:{{ provider.service_type }}",
-            "resource/service": service or "{{ provider.service_type }}",
+            "time/usage_start": timestamp,
+            "resource/id": resource_id,
             "resource/account": account,
-            "resource/region": region,
-            "resource/usage_family": "{{ cbf_mapping.resource_usage_family or 'api-credits' }}",
-            "usage/amount": str(credits_consumed) if credits_consumed else "",
-            "usage/units": "{{ cbf_mapping.usage_units or 'credits' }}" if credits_consumed else "",
-            "cost/discounted_cost": f"{discounted_cost:.6f}" if discounted_cost else "",
-            "cost/amortized_cost": "",
-            "cost/on_demand_cost": "",
+            "lineitem/type": line_type,
+            "resource/service": service or "{{ provider.service_type }}",
         }
+
+        # Usage (recommended -- include when we have values)
+        if usage_amount or credits_consumed:
+            record["usage/amount"] = str(usage_amount or credits_consumed)
+        if usage_units or credits_consumed:
+            record["usage/units"] = usage_units or "{{ cbf_mapping.usage_units or 'credits' }}"
+
+        # Optional dimension fields (omit if empty)
+        if month or "{{ cbf_mapping.bill_invoice_id }}":
+            record["bill/invoice_id"] = f"{{ provider.name }}-{month}"
+
+        record["lineitem/description"] = description or f"{{ provider.display_name }} {service or '{{ provider.service_type }}'} usage"
+        record["lineitem/cloud_provider"] = "{{ provider.name }}"
+        record["resource/region"] = region
+{% if cbf_mapping.resource_usage_family %}
+        record["resource/usage_family"] = "{{ cbf_mapping.resource_usage_family }}"
+{% elif provider.service_type %}
+        record["resource/usage_family"] = service or "{{ provider.service_type }}"
+{% endif %}
+
+        if operation{% if cbf_mapping.action_operation %} or True{% endif %}:
+            record["action/operation"] = operation{% if cbf_mapping.action_operation %} or "{{ cbf_mapping.action_operation }}"{% endif %}
+
+        if usage_type{% if cbf_mapping.action_usage_type %} or True{% endif %}:
+            record["action/usage_type"] = usage_type{% if cbf_mapping.action_usage_type %} or "{{ cbf_mapping.action_usage_type }}"{% endif %}
+
+        # Optional cost variants (omit if zero/empty)
+        if discounted_cost:
+            record["cost/discounted_cost"] = f"{discounted_cost:.6f}"
+        if amortized_cost:
+            record["cost/amortized_cost"] = f"{amortized_cost:.6f}"
+        if discounted_amortized_cost:
+            record["cost/discounted_amortized_cost"] = f"{discounted_amortized_cost:.6f}"
+        if on_demand_cost:
+            record["cost/on_demand_cost"] = f"{on_demand_cost:.6f}"
+
+        # Optional Kubernetes fields (omit if empty)
+        if k8s_cluster:
+            record["k8s/cluster"] = k8s_cluster
+        if k8s_namespace:
+            record["k8s/namespace"] = k8s_namespace
+        if k8s_deployment:
+            record["k8s/deployment"] = k8s_deployment
+        if k8s_labels:
+            record["k8s/labels"] = k8s_labels
+
+        # Custom resource tags (resource/tag:<key>)
+        if tags:
+            for tag_key, tag_value in tags.items():
+                record[f"resource/tag:{tag_key}"] = str(tag_value)
+
+        return record

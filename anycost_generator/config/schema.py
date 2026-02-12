@@ -70,33 +70,52 @@ class DataConfig(BaseModel):
 
 
 class CbfMapping(BaseModel):
-    """CloudZero Common Billing Format field mappings."""
+    """CloudZero Common Billing Format field mappings.
+
+    Field names follow the CBF spec at:
+    https://docs.cloudzero.com/docs/anycost-common-bill-format-cbf
+    """
     # Required
-    time_usage_start: str = Field(default="snapshot_timestamp")
     cost_cost: str = Field(default="cost")
-    bill_invoice_id: str = Field(default="")
+    time_usage_start: str = Field(default="snapshot_timestamp")
 
-    # Line item (optional)
-    lineitem_id: str = Field(default="")
-    lineitem_type: str = Field(default="Usage")
-    lineitem_description: str = Field(default="")
-    lineitem_cloud_provider: str = Field(default="")
-
-    # Resource (optional)
+    # Required when tags are present
     resource_id: str = Field(default="")
-    resource_service: str = Field(default="")
-    resource_account: str = Field(default="default")
-    resource_region: str = Field(default="global")
-    resource_usage_family: str = Field(default="")
 
-    # Usage (optional)
+    # Recommended
+    resource_account: str = Field(default="default")
+    lineitem_type: str = Field(default="Usage")
+    resource_service: str = Field(default="")
     usage_amount: str = Field(default="")
     usage_units: str = Field(default="")
 
-    # Additional cost (optional)
+    # Optional -- dimensions
+    bill_invoice_id: str = Field(default="")
+    lineitem_description: str = Field(default="")
+    lineitem_cloud_provider: str = Field(default="")
+    resource_region: str = Field(default="global")
+    resource_usage_family: str = Field(default="")
+    action_operation: str = Field(default="")
+    action_usage_type: str = Field(default="")
+
+    # Optional -- cost variants
     cost_discounted_cost: str = Field(default="")
     cost_amortized_cost: str = Field(default="")
+    cost_discounted_amortized_cost: str = Field(default="")
     cost_on_demand_cost: str = Field(default="")
+
+    # Optional -- Kubernetes
+    k8s_cluster: str = Field(default="")
+    k8s_namespace: str = Field(default="")
+    k8s_deployment: str = Field(default="")
+    k8s_labels: str = Field(default="")
+
+    # Optional -- custom resource tags (resource/tag:<key>)
+    # Keys are tag names, values are expressions to extract the tag value.
+    resource_tags: dict[str, str] = Field(
+        default_factory=dict,
+        description="Custom resource tags emitted as resource/tag:<key> columns",
+    )
 
 
 # ---------------------------------------------------------------------------
