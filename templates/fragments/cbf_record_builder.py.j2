@@ -1,0 +1,52 @@
+    def _build_cbf_record(
+        self,
+        timestamp: str,
+        cost: float,
+        month: str,
+        credits_consumed: float = 0,
+        discounted_cost: float = 0,
+        line_type: str = "Usage",
+        resource_id: str = "",
+        service: str = "",
+        description: str = "",
+        account: str = "default",
+        region: str = "global",
+    ) -> dict:
+        """Build a single CBF record dict.
+
+        Args:
+            timestamp: ISO 8601 timestamp for usage start.
+            cost: Cost amount in USD.
+            month: Month string (YYYY-MM) for invoice ID.
+            credits_consumed: Number of credits consumed (tier 1).
+            discounted_cost: Discounted cost amount (tier 1).
+            line_type: Line item type (Usage, Credit, Support, etc.).
+            resource_id: Resource identifier.
+            service: Service name.
+            description: Line item description.
+            account: Account identifier.
+            region: Region identifier.
+        """
+        # Generate a unique line item ID
+        raw_id = f"{{ provider.name }}-{timestamp}-{resource_id}-{cost}"
+        lineitem_id = hashlib.md5(raw_id.encode()).hexdigest()[:16]
+
+        return {
+            "time/usage_start": timestamp,
+            "cost/cost": f"{cost:.6f}",
+            "bill/invoice_id": f"{{ provider.name }}-{month}",
+            "lineitem/id": f"{{ provider.name }}-{lineitem_id}",
+            "lineitem/type": line_type,
+            "lineitem/description": description or f"{{ provider.display_name }} {service or '{{ provider.service_type }}'} usage",
+            "lineitem/cloud_provider": "{{ provider.name }}",
+            "resource/id": resource_id or "{{ provider.name }}:{{ provider.service_type }}",
+            "resource/service": service or "{{ provider.service_type }}",
+            "resource/account": account,
+            "resource/region": region,
+            "resource/usage_family": "{{ cbf_mapping.resource_usage_family or 'api-credits' }}",
+            "usage/amount": str(credits_consumed) if credits_consumed else "",
+            "usage/units": "{{ cbf_mapping.usage_units or 'credits' }}" if credits_consumed else "",
+            "cost/discounted_cost": f"{discounted_cost:.6f}" if discounted_cost else "",
+            "cost/amortized_cost": "",
+            "cost/on_demand_cost": "",
+        }

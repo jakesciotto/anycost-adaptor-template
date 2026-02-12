@@ -1,0 +1,47 @@
+# Luma AI -- Tier 1 (Credit Polling)
+# Video/image generation API with credit-based billing
+
+provider:
+  name: "lumaai"
+  display_name: "Luma"
+  service_type: "ai-video-generation"
+
+api:
+  base_url: "https://api.lumalabs.ai/dream-machine/v1"
+  auth_method: "bearer_jwt"
+  rate_limit: 10
+  timeout: 30
+
+auth:
+  required_env_vars:
+    - "LUMAAI_API_KEY"
+  optional_env_vars: []
+
+data:
+  source_format: "json"
+  time_field: "timestamp"
+  cost_field: "credit_balance"
+  resource_field: "service"
+
+cbf_mapping:
+  time_usage_start: "snapshot_timestamp"
+  cost_cost: "credits_consumed * credit_to_usd"
+  bill_invoice_id: "f'lumaai-{month}'"
+  lineitem_type: "Usage"
+  lineitem_description: "Luma AI Credit Consumption"
+  lineitem_cloud_provider: "lumaai"
+  resource_id: "lumaai:video-generation"
+  resource_service: "video-generation"
+  resource_usage_family: "api-credits"
+  usage_units: "credits"
+
+credit_config:
+  credits_endpoint: "/credits"
+  credit_to_usd: 0.0
+  contract_value_usd: 1300000
+  contract_start: "2025-12-08"
+  snapshot_file: "data/lumaai_snapshots.csv"
+
+dependencies:
+  - "requests>=2.28.0"
+  - "python-dotenv>=0.19.0"

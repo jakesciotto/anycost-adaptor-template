@@ -1,0 +1,99 @@
+"""
+{{ provider.display_name }} AnyCost Adaptor - API Client
+
+Handles API communication with {{ provider.display_name }}.
+{% if tier.value == "tier1_credit" %}
+Tier 1 (Credit Polling): polls a single endpoint, computes credit delta.
+{% elif tier.value == "tier2_structured" %}
+Tier 2 (Structured Billing): fetches from multiple endpoints, returns structured data.
+{% elif tier.value == "tier3_enterprise" %}
+Tier 3 (Enterprise): handles complex API responses or CSV file processing.
+{% endif %}
+
+Generated from AnyCost Adaptor Template ({{ tier.value }})
+"""
+
+import time
+import requests
+from datetime import datetime
+from {{ provider.name }}_config import {{ provider_class_name }}Config
+
+
+class {{ provider_class_name }}Client:
+    """API client for {{ provider.display_name }}."""
+
+    def __init__(self, config: {{ provider_class_name }}Config = None):
+        self.config = config or {{ provider_class_name }}Config()
+        self.session = requests.Session()
+        self.session.headers.update(self.config.get_headers())
+
+    def _request(self, method: str, endpoint: str, **kwargs):
+        """Make a rate-limited API request."""
+        url = f"{self.config.api_base_url}{endpoint}"
+        kwargs.setdefault("timeout", self.config.api_timeout)
+
+        response = self.session.request(method, url, **kwargs)
+        response.raise_for_status()
+
+        # Simple rate limiting
+        time.sleep(1.0 / self.config.api_rate_limit)
+
+        return response.json()
+
+{% if tier.value == "tier1_credit" %}
+{% include 'fragments/polling_credit_delta.py.j2' %}
+{% elif tier.value == "tier2_structured" %}
+    def fetch_billing_data(self, start_date: str, end_date: str) -> list[dict]:
+        """Fetch structured billing data for a date range.
+
+        Args:
+            start_date: Start date in YYYY-MM-DD format.
+            end_date: End date in YYYY-MM-DD format.
+
+        Returns:
+            List of billing line items.
+        """
+        # TODO: Implement API call to fetch billing data
+        # Example:
+        # response = self._request("GET", "/billing/costs", params={
+        #     "start_date": start_date,
+        #     "end_date": end_date,
+        # })
+        # return response.get("{{ structured_config.root_data_key }}", [])
+        raise NotImplementedError("Implement fetch_billing_data for {{ provider.display_name }}")
+
+{% elif tier.value == "tier3_enterprise" %}
+{% if enterprise_config and enterprise_config.csv_structure %}
+{% include 'fragments/processing_csv.py.j2' %}
+{% else %}
+    def fetch_usage_data(self, start_date: str, end_date: str) -> list[dict]:
+        """Fetch complex usage data for a date range.
+
+        Args:
+            start_date: Start date in ISO format.
+            end_date: End date in ISO format.
+
+        Returns:
+            Flattened list of usage records.
+        """
+        # TODO: Implement API call and flatten nested response
+        raise NotImplementedError("Implement fetch_usage_data for {{ provider.display_name }}")
+{% endif %}
+{% endif %}
+
+
+def test_{{ provider.name }}_api_connection() -> bool:
+    """Test the {{ provider.display_name }} API connection."""
+    try:
+        client = {{ provider_class_name }}Client()
+{% if tier.value == "tier1_credit" and api.endpoints %}
+{% set first_endpoint = api.endpoints.values() | first %}
+        client._request("GET", "{{ first_endpoint }}")
+{% else %}
+        # TODO: Add a lightweight API call to verify connectivity
+        client._request("GET", "/")
+{% endif %}
+        return True
+    except Exception as e:
+        print(f"{{ provider.display_name }} connection test failed: {e}")
+        return False

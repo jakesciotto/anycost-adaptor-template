@@ -1,0 +1,97 @@
+# AnyCost Adaptor Generator -- Config Schema Reference
+# This documents all fields accepted by the unified config schema.
+# See config/examples/ for working examples of each tier.
+
+# ---- Required top-level sections ----
+
+provider:                          # REQUIRED
+  name: ""                         # Lowercase identifier (e.g. "bfl")
+  display_name: ""                 # Human-readable (e.g. "Black Forest Labs")
+  service_type: ""                 # Category (e.g. "ai-image-generation")
+
+api:                               # REQUIRED
+  base_url: ""                     # API base URL
+  auth_method: ""                  # api_key | api_key_header | basic_auth | bearer_token | bearer_jwt | oauth2
+  rate_limit: 10                   # Requests per second (default: 10)
+  timeout: 30                      # Request timeout seconds (default: 30)
+  endpoints: {}                    # Named endpoints (e.g. {me: "/me"})
+
+auth:                              # REQUIRED
+  required_env_vars: []            # List of required env var names
+  optional_env_vars: []            # List of optional env var names
+
+data:                              # OPTIONAL (has defaults)
+  source_format: "json"            # json | csv
+  input_method: "api"              # api | file_upload
+  time_field: "timestamp"          # Field name for time data
+  cost_field: "cost"               # Field name for cost data
+  resource_field: "resource_id"    # Field name for resource identifier
+
+cbf_mapping:                       # OPTIONAL (has defaults)
+  # Required CBF fields
+  time_usage_start: ""
+  cost_cost: ""
+  bill_invoice_id: ""
+  # Line item fields
+  lineitem_id: ""
+  lineitem_type: "Usage"
+  lineitem_description: ""
+  lineitem_cloud_provider: ""
+  # Resource fields
+  resource_id: ""
+  resource_service: ""
+  resource_account: "default"
+  resource_region: "global"
+  resource_usage_family: ""
+  # Usage fields
+  usage_amount: ""
+  usage_units: ""
+  # Additional cost fields
+  cost_discounted_cost: ""
+  cost_amortized_cost: ""
+  cost_on_demand_cost: ""
+
+dependencies: []                   # Pip packages (default: requests, python-dotenv)
+
+# ---- Tier selection ----
+# Set explicitly or auto-detected from which tier-specific section is present.
+tier: ""                           # tier1_credit | tier2_structured | tier3_enterprise | (auto)
+
+# ---- Tier 1: Credit Polling ----
+credit_config:
+  credits_endpoint: ""             # API endpoint to poll for credit balance
+  credit_to_usd: 0.0              # Dollars per credit
+  discount_rate: 0.0               # Discount percentage (0-1)
+  discounted_rate: 0.0             # Post-discount rate per credit
+  token_pools: []                  # [{field: "fieldName", label: "Label"}, ...]
+  contract_value_usd: 0            # Contract total (informational)
+  contract_start: ""               # Contract start date
+  snapshot_file: ""                # Path to snapshot CSV
+  model_pricing: {}                # Model-specific credit pricing
+
+# ---- Tier 2: Structured Billing ----
+structured_config:
+  root_data_key: "data"            # Key in API response containing data array
+  line_type_field: ""              # Field identifying line item type
+  field_mappings:
+    cost: {}                       # {primary: "amount", alternate: "original_amount"}
+    date: {}                       # {start: "start_date", end: "end_date"}
+    resource: {}                   # {id: "resource.id", ...}
+    usage: {}                      # {quantity: "quantity", unit: "unit"}
+  tags: []                         # Fields to extract as tags
+  resource_id_template: ""         # Template for resource ID generation
+
+# ---- Tier 3: Enterprise ----
+enterprise_config:
+  csv_structure:                   # For CSV-based providers
+    header_rows_to_skip: 0
+    date_column: 0
+    date_format: "%b %Y"
+    cost_categories: {}            # {name: column_index, ...}
+  nested_response: false           # For complex API responses
+  pricing_rules: []                # [{name, contracted_count, below/above_contracted_price, cumulative_tracking}]
+  fixed_costs: []                  # [{name, monthly_amount, valid_until, resource_id}]
+  cost_categories: []              # List of cost category names
+  aggregation_method: "daily"      # daily | monthly
+  resource_id_templates: {}        # {app_level: "...", account_level: "..."}
+  tags: []                         # Fields to extract as tags

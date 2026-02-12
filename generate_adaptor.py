@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """
-AnyCost Adaptor Template Generator
+AnyCost Adaptor Template Generator (DEPRECATED)
 
-This script generates a customized adaptor from the template files
-for any provider (Oracle, Splunk, SumoLogic, AWS, etc.).
+This script is deprecated. Use the new generator instead:
 
-Usage:
-    python generate_adaptor.py --provider mycloud --output ../mycloud-adaptor
-    python generate_adaptor.py --config config/template_config.yaml --output ../mycloud-adaptor
+    python -m anycost_generator generate --config CONFIG --output DIR
+    python -m anycost_generator interactive
+    python -m anycost_generator validate --config CONFIG
+
+See the project README for full usage instructions.
 """
 
 import os
@@ -15,8 +16,15 @@ import sys
 import argparse
 import yaml
 import shutil
+import warnings
 from pathlib import Path
 from typing import Dict, Any
+
+warnings.warn(
+    "generate_adaptor.py is deprecated. Use 'python -m anycost_generator' instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 
 def load_config(config_path: str) -> Dict[str, Any]:

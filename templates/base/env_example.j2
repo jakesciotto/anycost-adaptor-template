@@ -1,0 +1,18 @@
+# {{ provider.display_name }} AnyCost Adaptor Configuration
+
+# {{ provider.display_name }} API Configuration
+{% for var in auth.required_env_vars %}
+{{ var }}=your_{{ var | lower }}_here
+{% endfor %}
+{% if auth.optional_env_vars %}
+
+# Optional Configuration
+{% for var in auth.optional_env_vars %}
+# {{ var }}=optional_value
+{% endfor %}
+{% endif %}
+
+# CloudZero AnyCost Stream Configuration
+CLOUDZERO_API_KEY=your_cloudzero_api_key
+CLOUDZERO_CONNECTION_ID=your_anycost_stream_connection_id
+CLOUDZERO_API_URL=https://api.cloudzero.com

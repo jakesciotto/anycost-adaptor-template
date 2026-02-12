@@ -1,0 +1,69 @@
+# Heroku Enterprise -- Tier 3 (Enterprise)
+# Complex daily usage data with contract pricing and multiple cost categories
+
+provider:
+  name: "heroku"
+  display_name: "Heroku Enterprise"
+  service_type: "platform-as-a-service"
+
+api:
+  base_url: "https://api.heroku.com"
+  auth_method: "bearer_token"
+  rate_limit: 10
+  timeout: 30
+  endpoints:
+    usage: "/enterprise-accounts/{enterprise_account_id}/usage/daily"
+
+auth:
+  required_env_vars:
+    - "HEROKU_API_TOKEN"
+    - "HEROKU_ENTERPRISE_ACCOUNT_ID"
+  optional_env_vars: []
+
+data:
+  source_format: "json"
+  time_field: "date"
+  cost_field: "cost"
+  resource_field: "name"
+
+cbf_mapping:
+  time_usage_start: "date"
+  cost_cost: "cost"
+  bill_invoice_id: "f'heroku-{month}'"
+  lineitem_cloud_provider: "heroku"
+  resource_usage_family: "platform"
+
+enterprise_config:
+  nested_response: true
+  pricing_rules:
+    - name: "dyno_pricing"
+      contracted_count: 3000
+      below_contracted_price: 19.0
+      above_contracted_price: 18.0
+      cumulative_tracking: true
+  fixed_costs:
+    - name: "premier_success_plan"
+      monthly_amount: 14846.40
+      valid_until: "2025-10-30"
+      resource_id: "heroku:premier_success_plan"
+  cost_categories:
+    - "dynos"
+    - "data"
+    - "addons"
+    - "partner"
+    - "private_space"
+    - "shield_space"
+    - "private_space_credits"
+    - "shield_space_credits"
+  aggregation_method: "daily"
+  resource_id_templates:
+    app_level: "heroku:{service}/{account}/{team}/{app}"
+    account_level: "heroku:{service}/{account}"
+    fixed: "heroku:{service}"
+  tags:
+    - "heroku_team"
+    - "heroku_app_name"
+
+dependencies:
+  - "requests>=2.28.0"
+  - "python-dotenv>=0.19.0"

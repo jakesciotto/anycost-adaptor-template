@@ -1,0 +1,42 @@
+# SumoLogic -- Tier 2 (Structured Billing)
+# Logging platform with credit-based usage tracking
+
+provider:
+  name: "sumologic"
+  display_name: "SumoLogic"
+  service_type: "logging"
+
+api:
+  base_url: "https://api.{deployment}.sumologic.com/api"
+  auth_method: "basic_auth"
+  rate_limit: 240
+  timeout: 30
+
+auth:
+  required_env_vars:
+    - "SUMO_ACCESS_KEY"
+    - "SUMO_SECRET_KEY"
+    - "SUMO_DEPLOYMENT"
+    - "SUMO_ORG_ID"
+  optional_env_vars:
+    - "LOG_CONTINUOUS_CREDIT_RATE"
+    - "LOG_FREQUENT_CREDIT_RATE"
+    - "LOG_INFREQUENT_CREDIT_RATE"
+    - "LOG_INFREQUENT_SCAN_CREDIT_RATE"
+    - "METRICS_CREDIT_RATE"
+    - "TRACING_CREDIT_RATE"
+    - "COST_PER_CREDIT"
+
+data:
+  source_format: "json"
+  time_field: "timestamp"
+  cost_field: "cost"
+  resource_field: "source_category"
+
+structured_config:
+  root_data_key: "data"
+  line_type_field: "usage_type"
+
+dependencies:
+  - "requests>=2.28.0"
+  - "python-dotenv>=0.19.0"

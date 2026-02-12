@@ -1,0 +1,49 @@
+# Full tier 2 test fixture
+provider:
+  name: "testbilling"
+  display_name: "Test Billing Provider"
+  service_type: "billing"
+
+api:
+  base_url: "https://api.testbilling.com/v1"
+  auth_method: "basic_auth"
+  rate_limit: 50
+  timeout: 60
+  endpoints:
+    costs: "/billing/costs"
+    usage: "/billing/usage"
+
+auth:
+  required_env_vars:
+    - "TESTBILLING_ACCESS_KEY"
+    - "TESTBILLING_SECRET_KEY"
+  optional_env_vars:
+    - "TESTBILLING_REGION"
+
+data:
+  source_format: "json"
+  time_field: "start_date"
+  cost_field: "amount"
+  resource_field: "resource_id"
+
+structured_config:
+  root_data_key: "data"
+  line_type_field: "line_type"
+  field_mappings:
+    cost:
+      primary: "amount"
+      alternate: "original_amount"
+    date:
+      start: "start_date"
+      end: "end_date"
+    resource:
+      id: "resource.id"
+      environment: "resource.environment.id"
+  tags:
+    - "environment"
+    - "display_name"
+  resource_id_template: "testbilling:{line_type}/{resource.id}"
+
+dependencies:
+  - "requests>=2.28.0"
+  - "python-dotenv>=0.19.0"

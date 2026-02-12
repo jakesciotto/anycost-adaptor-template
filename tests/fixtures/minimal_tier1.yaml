@@ -1,0 +1,17 @@
+# Minimal tier 1 test fixture
+provider:
+  name: "testprovider"
+  display_name: "Test Provider"
+  service_type: "testing"
+
+api:
+  base_url: "https://api.test.com/v1"
+  auth_method: "api_key"
+
+auth:
+  required_env_vars:
+    - "TEST_API_KEY"
+
+credit_config:
+  credits_endpoint: "/credits"
+  credit_to_usd: 0.01

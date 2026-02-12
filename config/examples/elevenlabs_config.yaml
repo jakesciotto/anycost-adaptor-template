@@ -1,0 +1,50 @@
+# ElevenLabs -- Tier 1 (Credit Polling)
+# Text-to-speech / voice AI API with character-based billing
+
+provider:
+  name: "elevenlabs"
+  display_name: "ElevenLabs"
+  service_type: "ai-voice-generation"
+
+api:
+  base_url: "https://api.elevenlabs.io/v1"
+  auth_method: "api_key_header"
+  rate_limit: 10
+  timeout: 30
+  endpoints:
+    subscription: "/user/subscription"
+    user: "/user"
+
+auth:
+  required_env_vars:
+    - "ELEVENLABS_API_KEY"
+  optional_env_vars: []
+
+data:
+  source_format: "json"
+  time_field: "next_character_count_reset_unix"
+  cost_field: "character_count"
+  resource_field: "tier"
+
+cbf_mapping:
+  time_usage_start: "snapshot_timestamp"
+  cost_cost: "characters_consumed * character_to_usd"
+  bill_invoice_id: "f'elevenlabs-{month}'"
+  lineitem_type: "Usage"
+  lineitem_description: "ElevenLabs Character Consumption"
+  lineitem_cloud_provider: "elevenlabs"
+  resource_id: "elevenlabs:voice-generation"
+  resource_service: "voice-generation"
+  resource_account: "default"
+  resource_region: "global"
+  resource_usage_family: "api-characters"
+  usage_units: "characters"
+
+credit_config:
+  credits_endpoint: "/user/subscription"
+  credit_to_usd: 0.0
+  snapshot_file: "data/elevenlabs_snapshots.csv"
+
+dependencies:
+  - "requests>=2.28.0"
+  - "python-dotenv>=0.19.0"

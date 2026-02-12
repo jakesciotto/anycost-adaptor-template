@@ -1,0 +1,10 @@
+    def _auth_headers(self):
+        """OAuth2 authentication headers.
+
+        TODO: Implement OAuth2 token refresh flow.
+        This is a placeholder -- real OAuth2 requires token exchange.
+        """
+        return {
+            "Authorization": f"Bearer {self.{{ auth.required_env_vars[0] | lower }}}",
+            "Content-Type": "application/json",
+        }

@@ -1,0 +1,13 @@
+    def _auth_headers(self):
+        """Basic authentication headers."""
+        import base64
+{% if auth.required_env_vars | length >= 2 %}
+        credentials = f"{self.{{ auth.required_env_vars[0] | lower }}}:{self.{{ auth.required_env_vars[1] | lower }}}"
+{% else %}
+        credentials = f"{self.{{ auth.required_env_vars[0] | lower }}}:"
+{% endif %}
+        encoded = base64.b64encode(credentials.encode()).decode()
+        return {
+            "Authorization": f"Basic {encoded}",
+            "Content-Type": "application/json",
+        }

@@ -1,0 +1,63 @@
+    def transform_usage_data(self, usage_data: list[dict], month: str) -> list[dict]:
+        """Transform complex usage data into CBF records.
+
+        Handles aggregation across cost categories and applies pricing rules.
+
+        Args:
+            usage_data: List of usage record dicts.
+            month: Month string (YYYY-MM) for the invoice ID.
+
+        Returns:
+            List of CBF record dicts.
+        """
+        records = []
+
+{% if enterprise_config and enterprise_config.cost_categories %}
+        # Process each cost category
+        cost_categories = {{ enterprise_config.cost_categories }}
+        for item in usage_data:
+            for category in cost_categories:
+                cost = self._extract_cost(item, category)
+                if cost and cost > 0:
+                    record = self._build_cbf_record(
+                        timestamp=item.get("date", ""),
+                        cost=cost,
+                        month=month,
+                        resource_id=f"{{ provider.name }}:{category}",
+                        service=category,
+                    )
+                    records.append(record)
+{% else %}
+        for item in usage_data:
+            record = self._build_cbf_record(
+                timestamp=item.get("date", ""),
+                cost=float(item.get("cost", 0)),
+                month=month,
+            )
+            records.append(record)
+{% endif %}
+
+{% if enterprise_config and enterprise_config.fixed_costs %}
+        # Add fixed costs
+{% for fc in enterprise_config.fixed_costs %}
+        records.append(self._build_cbf_record(
+            timestamp=f"{month}-01T00:00:00Z",
+            cost={{ fc.monthly_amount }},
+            month=month,
+            resource_id="{{ fc.resource_id }}",
+            service="{{ fc.name }}",
+            description="{{ fc.name }}",
+        ))
+{% endfor %}
+{% endif %}
+
+        return records
+
+    def _extract_cost(self, item: dict, category: str) -> float:
+        """Extract cost for a specific category from a usage record."""
+        raw = item.get(category, 0)
+        if isinstance(raw, str):
+            # Strip non-numeric characters (e.g. currency symbols)
+            cleaned = "".join(c for c in raw if c.isdigit() or c == ".")
+            return float(cleaned) if cleaned else 0.0
+        return float(raw) if raw else 0.0

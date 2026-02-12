@@ -1,0 +1,66 @@
+# Splunk/DataDog -- Tier 3 (Enterprise, CSV)
+# CSV-based billing data with multiple cost categories
+
+provider:
+  name: "splunk"
+  display_name: "Splunk"
+  service_type: "observability"
+
+api:
+  base_url: "https://localhost"
+  auth_method: "api_key"
+
+auth:
+  required_env_vars:
+    - "SPLUNK_API_KEY"
+  optional_env_vars: []
+
+data:
+  source_format: "csv"
+  input_method: "file_upload"
+  time_field: "date"
+  cost_field: "cost"
+
+cbf_mapping:
+  time_usage_start: "first_day_of_month"
+  cost_cost: "cost"
+  bill_invoice_id: "f'splunk-{month}'"
+  lineitem_cloud_provider: "splunk"
+  resource_usage_family: "observability"
+
+enterprise_config:
+  csv_structure:
+    header_rows_to_skip: 2
+    date_column: 0
+    date_format: "%b %Y"
+    cost_categories:
+      hosts: 1
+      containers: 2
+      custom_metrics: 3
+      apm_hosts: 4
+      monitoring_metric_sets: 5
+      troubleshooting_metric_sets: 6
+      trace_volume_mb: 7
+      profiling_volume: 8
+      rum_sessions: 9
+      browser_test_runs: 10
+      api_test_runs: 11
+      uptime_test_runs: 12
+  cost_categories:
+    - "hosts"
+    - "containers"
+    - "custom_metrics"
+    - "apm_hosts"
+    - "monitoring_metric_sets"
+    - "troubleshooting_metric_sets"
+    - "trace_volume_mb"
+    - "profiling_volume"
+    - "rum_sessions"
+    - "browser_test_runs"
+    - "api_test_runs"
+    - "uptime_test_runs"
+  aggregation_method: "monthly"
+
+dependencies:
+  - "requests>=2.28.0"
+  - "python-dotenv>=0.19.0"

@@ -1,0 +1,74 @@
+    def fetch_credit_snapshot(self) -> dict:
+        """Fetch current credit balance and compute delta from previous snapshot.
+
+        Returns:
+            Dict with keys: timestamp, credits_consumed, credit_balance,
+{% if credit_config and credit_config.token_pools %}
+{% for pool in credit_config.token_pools %}
+            {{ pool.field }},
+{% endfor %}
+{% endif %}
+            previous_balance.
+        """
+        import csv
+        from pathlib import Path
+
+{% if credit_config and credit_config.credits_endpoint %}
+        endpoint = "{{ credit_config.credits_endpoint }}"
+{% elif api.endpoints %}
+{% set first_endpoint = api.endpoints.values() | first %}
+        endpoint = "{{ first_endpoint }}"
+{% else %}
+        endpoint = "/"  # TODO: set the correct credits endpoint
+{% endif %}
+        response = self._request("GET", endpoint)
+
+        # Extract credit balance from response
+{% if credit_config and credit_config.token_pools %}
+        # Multi-pool credit tracking
+{% for pool in credit_config.token_pools %}
+        {{ pool.field | lower }} = response.get("{{ pool.field }}", 0)
+{% endfor %}
+        current_balance = {{ credit_config.token_pools | map(attribute='field') | map('lower') | join(' + ') }}
+{% else %}
+        # Single balance field
+        current_balance = response.get("credit_balance", 0)
+{% endif %}
+
+        timestamp = datetime.utcnow().isoformat() + "Z"
+
+        # Load previous snapshot
+        snapshot_path = Path("{{ credit_config.snapshot_file if credit_config else 'data/snapshots.csv' }}")
+        previous_balance = None
+        if snapshot_path.exists():
+            with open(snapshot_path, "r") as f:
+                reader = csv.DictReader(f)
+                rows = list(reader)
+                if rows:
+                    previous_balance = float(rows[-1]["credit_balance"])
+
+        # Compute delta
+        credits_consumed = 0
+        if previous_balance is not None:
+            credits_consumed = max(0, previous_balance - current_balance)
+
+        # Save current snapshot
+        snapshot_path.parent.mkdir(parents=True, exist_ok=True)
+        write_header = not snapshot_path.exists()
+        with open(snapshot_path, "a", newline="") as f:
+            writer = csv.writer(f)
+            if write_header:
+                writer.writerow(["timestamp", "credit_balance", "credits_consumed"])
+            writer.writerow([timestamp, current_balance, credits_consumed])
+
+        return {
+            "timestamp": timestamp,
+            "credit_balance": current_balance,
+            "credits_consumed": credits_consumed,
+            "previous_balance": previous_balance,
+{% if credit_config and credit_config.token_pools %}
+{% for pool in credit_config.token_pools %}
+            "{{ pool.field }}": {{ pool.field | lower }},
+{% endfor %}
+{% endif %}
+        }

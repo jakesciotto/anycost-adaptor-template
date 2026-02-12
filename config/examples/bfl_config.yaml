@@ -1,0 +1,62 @@
+# Black Forest Labs (BFL) -- Tier 1 (Credit Polling)
+# AI image generation API with credit-based billing
+
+provider:
+  name: "bfl"
+  display_name: "Black Forest Labs"
+  service_type: "ai-image-generation"
+
+api:
+  base_url: "https://api.bfl.ai"
+  auth_method: "api_key"
+  rate_limit: 10
+  timeout: 30
+
+auth:
+  required_env_vars:
+    - "BFL_API_KEY"
+  optional_env_vars: []
+
+data:
+  source_format: "json"
+  time_field: "timestamp"
+  cost_field: "cost"
+  resource_field: "service"
+
+cbf_mapping:
+  time_usage_start: "snapshot_timestamp"
+  cost_cost: "credits_consumed * 0.01"
+  bill_invoice_id: "f'bfl-{month}'"
+  lineitem_type: "Usage"
+  lineitem_description: "BFL API Credit Consumption"
+  lineitem_cloud_provider: "bfl"
+  resource_id: "bfl:image-generation"
+  resource_service: "image-generation"
+  resource_account: "default"
+  resource_region: "global"
+  resource_usage_family: "api-credits"
+  usage_units: "credits"
+  cost_discounted_cost: "credits_consumed * 0.007"
+
+credit_config:
+  credits_endpoint: "/me"
+  credit_to_usd: 0.01
+  discount_rate: 0.30
+  discounted_rate: 0.007
+  snapshot_file: "data/bfl_snapshots.csv"
+  model_pricing:
+    flux_kontext_pro: 4
+    flux_kontext_max: 8
+    flux_1_1_pro: 4
+    flux_1_1_ultra: 6
+    flux_1_1_raw: 6
+    flux_fill_pro: 5
+    flux_canny_pro: 5
+    flux_depth_pro: 5
+    flux_dev: 2.5
+    flux_pro_finetuned: 6
+    flux_1_1_ultra_finetuned: 7
+
+dependencies:
+  - "requests>=2.28.0"
+  - "python-dotenv>=0.19.0"

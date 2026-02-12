@@ -1,0 +1,6 @@
+    def _auth_headers(self):
+        """Bearer token authentication headers."""
+        return {
+            "Authorization": f"Bearer {self.{{ auth.required_env_vars[0] | lower }}}",
+            "Content-Type": "application/json",
+        }

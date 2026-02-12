@@ -1,0 +1,57 @@
+    def transform_billing_data(self, line_items: list[dict], month: str) -> list[dict]:
+        """Transform structured billing line items into CBF records.
+
+        Args:
+            line_items: List of billing line item dicts from the API.
+            month: Month string (YYYY-MM) for the invoice ID.
+
+        Returns:
+            List of CBF record dicts.
+        """
+        records = []
+        for item in line_items:
+            record = self._map_line_item(item, month)
+            if record:
+                records.append(record)
+        return records
+
+    def _map_line_item(self, item: dict, month: str) -> dict:
+        """Map a single billing line item to a CBF record.
+
+        TODO: Customize field mappings for {{ provider.display_name }}.
+        """
+{% if structured_config %}
+        # Extract cost
+        cost = float(item.get("{{ structured_config.field_mappings.cost.get('primary', 'amount') }}", 0))
+{% else %}
+        cost = float(item.get("amount", 0))
+{% endif %}
+
+{% if structured_config and structured_config.field_mappings.date %}
+        # Extract timestamp
+        timestamp = item.get("{{ structured_config.field_mappings.date.get('start', 'start_date') }}", "")
+{% else %}
+        timestamp = item.get("start_date", "")
+{% endif %}
+
+{% if structured_config and structured_config.line_type_field %}
+        # Extract line item type
+        line_type = item.get("{{ structured_config.line_type_field }}", "Usage")
+{% else %}
+        line_type = item.get("line_type", "Usage")
+{% endif %}
+
+        return self._build_cbf_record(
+            timestamp=timestamp,
+            cost=cost,
+            month=month,
+            line_type=line_type,
+            resource_id=self._extract_resource_id(item),
+        )
+
+    def _extract_resource_id(self, item: dict) -> str:
+        """Extract or build a resource ID from a line item."""
+{% if structured_config and structured_config.resource_id_template %}
+        # TODO: Implement template: {{ structured_config.resource_id_template }}
+{% endif %}
+        return item.get("resource_id", item.get("id", ""))

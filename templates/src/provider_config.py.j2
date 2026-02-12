@@ -1,0 +1,81 @@
+"""
+{{ provider.display_name }} AnyCost Adaptor - Configuration
+
+Handles authentication, environment variable loading, and provider configuration.
+
+Generated from AnyCost Adaptor Template ({{ tier.value }})
+"""
+
+import os
+import sys
+from pathlib import Path
+from dotenv import load_dotenv
+
+
+# Load environment variables from env/.env
+env_path = Path(__file__).resolve().parent.parent / "env" / ".env"
+load_dotenv(env_path)
+
+
+class {{ provider_class_name }}Config:
+    """Configuration for the {{ provider.display_name }} AnyCost adaptor."""
+
+    # Required environment variables
+    REQUIRED_ENV_VARS = {{ auth.required_env_vars }}
+
+    # Optional environment variables
+    OPTIONAL_ENV_VARS = {{ auth.optional_env_vars }}
+
+    def __init__(self):
+        self._validate_env()
+        self._load_config()
+
+    def _validate_env(self):
+        """Validate that all required environment variables are set."""
+        missing = [var for var in self.REQUIRED_ENV_VARS if not os.getenv(var)]
+        if missing:
+            print(f"ERROR: Missing required environment variables: {', '.join(missing)}")
+            print("Copy env/.env.example to env/.env and fill in the values.")
+            sys.exit(1)
+
+    def _load_config(self):
+        """Load configuration from environment variables."""
+        # Required config
+{% for var in auth.required_env_vars %}
+        self.{{ var | lower }} = os.getenv("{{ var }}")
+{% endfor %}
+
+        # Optional config
+{% for var in auth.optional_env_vars %}
+        self.{{ var | lower }} = os.getenv("{{ var }}")
+{% endfor %}
+
+        # CloudZero config
+        self.cloudzero_api_key = os.getenv("CLOUDZERO_API_KEY")
+        self.cloudzero_connection_id = os.getenv("CLOUDZERO_CONNECTION_ID")
+        self.cloudzero_api_url = os.getenv("CLOUDZERO_API_URL", "https://api.cloudzero.com")
+
+        # API config
+        self.api_base_url = "{{ api.base_url }}"
+        self.api_timeout = {{ api.timeout }}
+        self.api_rate_limit = {{ api.rate_limit }}
+{% if tier.value == "tier1_credit" and credit_config %}
+
+        # Credit config
+        self.credit_to_usd = float(os.getenv("CREDIT_TO_USD", "{{ credit_config.credit_to_usd }}"))
+{% if credit_config.discount_rate %}
+        self.discount_rate = float(os.getenv("DISCOUNT_RATE", "{{ credit_config.discount_rate }}"))
+{% endif %}
+{% if credit_config.discounted_rate %}
+        self.discounted_rate = float(os.getenv("DISCOUNTED_RATE", "{{ credit_config.discounted_rate }}"))
+{% endif %}
+{% if credit_config.snapshot_file %}
+        self.snapshot_file = "{{ credit_config.snapshot_file }}"
+{% endif %}
+{% endif %}
+
+{% include 'fragments/auth_' ~ api.auth_method.value ~ '.py.j2' ignore missing %}
+
+    def get_headers(self):
+        """Return HTTP headers for API requests."""
+        return self._auth_headers()

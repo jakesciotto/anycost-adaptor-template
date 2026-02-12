@@ -1,0 +1,6 @@
+    def _auth_headers(self):
+        """API key authentication headers."""
+        return {
+            "x-api-key": self.{{ auth.required_env_vars[0] | lower }},
+            "Content-Type": "application/json",
+        }

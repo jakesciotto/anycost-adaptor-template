@@ -1,0 +1,16 @@
+[project]
+name = "{{ provider.name }}-anycost-adaptor"
+version = "0.1.0"
+description = "{{ provider.display_name }} AnyCost Stream Adaptor for CloudZero"
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.28.0",
+{% for dep in dependencies %}
+{% if dep != "requests>=2.28.0" %}
+    "{{ dep }}",
+{% endif %}
+{% endfor %}
+]
+
+[project.scripts]
+anycost = "anycost:main"

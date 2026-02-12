@@ -1,0 +1,61 @@
+# {{ provider.display_name }} AnyCost Stream Adaptor
+
+Fetch billing data from {{ provider.display_name }} and upload to CloudZero AnyCost Stream.
+
+Generated from AnyCost Adaptor Template.
+
+## Setup
+
+1. **Install dependencies:**
+   ```bash
+   pip install .
+   ```
+
+2. **Configure credentials:**
+   ```bash
+   cp env/.env.example env/.env
+   # Edit env/.env with your credentials
+   ```
+
+3. **Customize implementation:**
+   - Edit `src/{{ provider.name }}_config.py` - Authentication and config loading
+   - Edit `src/{{ provider.name }}_client.py` - API data fetching
+   - Edit `src/{{ provider.name }}_transform.py` - Data transformation to CBF
+   - Edit `src/{{ provider.name }}_anycost_adaptor.py` - Main orchestration
+
+## Usage
+
+```bash
+# Test connections
+python anycost.py test
+
+# Process single month
+python anycost.py {{ provider.name }} --month 2024-08
+
+# Process multiple months
+python anycost.py {{ provider.name }} --months 2024-06,2024-07,2024-08
+
+# Daily sync (yesterday's data)
+python anycost.py daily
+
+# Dry run (test without uploading)
+python anycost.py {{ provider.name }} --month 2024-08 --dry-run
+```
+{% if tier.value == "tier3_enterprise" and enterprise_config and enterprise_config.csv_structure %}
+
+## CSV Processing
+
+```bash
+# Process a CSV file directly
+python anycost.py csv --input input/data.csv --output output/cbf.csv
+```
+{% endif %}
+
+## Implementation Status
+
+- [ ] Authentication and configuration (`{{ provider.name }}_config.py`)
+- [ ] API client for data fetching (`{{ provider.name }}_client.py`)
+- [ ] Data transformation to CBF (`{{ provider.name }}_transform.py`)
+- [ ] Main adaptor orchestration (`{{ provider.name }}_anycost_adaptor.py`)
+- [ ] Test with sample data
+- [ ] Production deployment

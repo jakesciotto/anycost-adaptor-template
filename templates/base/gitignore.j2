@@ -5,20 +5,15 @@ __pycache__/
 *.egg-info/
 dist/
 build/
-*.egg
 
 # Virtual environments
 venv/
 .venv/
-/bin/
-/lib
-/include
-pyvenv.cfg
 
 # Environment files
 .env
 .env.*
-!.env.example
+!env/.env.example
 
 # IDE
 .vscode/
@@ -27,8 +22,10 @@ pyvenv.cfg
 # OS
 .DS_Store
 
-# Claude Code
-.claude
+# Output files
+output/*.csv
+output/*.json
 
-# Generated output
-output/
+# State files
+data/
+state/

@@ -1,0 +1,211 @@
+#!/usr/bin/env python3
+"""
+{{ provider.display_name }} AnyCost Stream Adaptor - Unified Entry Point
+
+This script provides a single entry point for all {{ provider.display_name }} to CloudZero operations:
+- CSV processing and transformation
+- Live {{ provider.display_name }} API data fetching
+- Daily automation
+- Testing and validation
+
+Usage:
+  python3 anycost.py csv --input input/data.csv              # Process CSV file
+  python3 anycost.py {{ provider.name }} --month 2025-09     # Fetch from {{ provider.display_name }} API
+  python3 anycost.py daily                                   # Run daily sync
+  python3 anycost.py test                                    # Test connections
+
+Generated from AnyCost Adaptor Template
+"""
+
+import sys
+import os
+import argparse
+import subprocess
+from datetime import datetime, timedelta
+
+# Add src directory to Python path
+current_dir = os.path.dirname(os.path.abspath(__file__))
+src_dir = os.path.join(current_dir, 'src')
+sys.path.insert(0, src_dir)
+
+
+def cmd_csv(args):
+    """Process CSV files to CBF format."""
+    print("CSV Processing Mode")
+
+    from csv_to_cbf import main as csv_main
+
+    csv_args = []
+    if args.input:
+        csv_args.extend(["--input", args.input])
+    if args.output:
+        csv_args.extend(["--output", args.output])
+
+    original_argv = sys.argv
+    sys.argv = ["csv_to_cbf.py"] + csv_args
+
+    try:
+        csv_main()
+    finally:
+        sys.argv = original_argv
+
+
+def cmd_{{ provider.name }}(args):
+    """Fetch data from {{ provider.display_name }} API and upload to CloudZero."""
+    print("{{ provider.display_name }} API Mode")
+
+    from {{ provider.name }}_anycost_adaptor import main as adaptor_main
+
+    adaptor_args = []
+    if args.month:
+        adaptor_args.extend(["--month", args.month])
+    if args.months:
+        adaptor_args.extend(["--months", args.months])
+    if args.test_connection:
+        adaptor_args.append("--test-connection")
+    if args.dry_run:
+        adaptor_args.append("--dry-run")
+
+    original_argv = sys.argv
+    sys.argv = ["{{ provider.name }}_anycost_adaptor.py"] + adaptor_args
+
+    try:
+        adaptor_main()
+    finally:
+        sys.argv = original_argv
+
+
+def cmd_daily(args):
+    """Run daily sync for yesterday's data."""
+    print("Daily Sync Mode")
+
+    yesterday = datetime.now() - timedelta(days=1)
+    month = yesterday.strftime("%Y-%m")
+
+    print(f"Starting daily {{ provider.display_name }} sync for {yesterday.strftime('%Y-%m-%d')}")
+    print(f"Processing month: {month}")
+
+    venv_python = "venv/bin/python"
+    python_cmd = venv_python if os.path.exists(venv_python) else sys.executable
+
+    try:
+        cmd = [python_cmd, __file__, "{{ provider.name }}", "--month", month]
+
+        if args.dry_run:
+            cmd.append("--dry-run")
+
+        print(f"Running: {' '.join(cmd)}")
+        result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+
+        print("Daily sync completed successfully!")
+        print(result.stdout)
+
+        print(f"\nDaily sync summary:")
+        print(f"   Date processed: {yesterday.strftime('%Y-%m-%d')}")
+        print(f"   Month: {month}")
+        print(f"   Output: Check output/ directory for CBF files")
+
+    except subprocess.CalledProcessError as e:
+        print(f"Daily sync failed: {e}")
+        print(f"STDOUT: {e.stdout}")
+        print(f"STDERR: {e.stderr}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        sys.exit(1)
+
+
+def cmd_test(args):
+    """Test {{ provider.display_name }} and CloudZero connections."""
+    print("Test Mode")
+
+    try:
+        print("\n1. Testing {{ provider.display_name }} connection...")
+        from {{ provider.name }}_client import test_{{ provider.name }}_api_connection
+        if test_{{ provider.name }}_api_connection():
+            print("{{ provider.display_name }} connection successful")
+        else:
+            print("{{ provider.display_name }} connection failed")
+            return False
+
+        print("\n2. Testing CloudZero connection...")
+        from cloudzero import CloudZeroClient
+        client = CloudZeroClient()
+        if client.test_connection():
+            print("CloudZero connection successful")
+        else:
+            print("CloudZero connection failed")
+            return False
+
+        print("\nAll connection tests passed!")
+        return True
+
+    except Exception as e:
+        print(f"Test failed: {e}")
+        return False
+
+
+def main():
+    """Main entry point with command routing."""
+    parser = argparse.ArgumentParser(
+        description="{{ provider.display_name }} AnyCost Stream Adaptor",
+        epilog="""
+Examples:
+  %(prog)s csv --input input/data.csv --output output/cbf.csv
+  %(prog)s {{ provider.name }} --month 2025-09
+  %(prog)s {{ provider.name }} --months 2025-06,2025-07,2025-08
+  %(prog)s daily
+  %(prog)s daily --dry-run
+  %(prog)s test
+        """,
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+
+    subparsers = parser.add_subparsers(dest='command', help='Available commands')
+
+    # CSV command
+    csv_parser = subparsers.add_parser('csv', help='Process CSV files to CBF format')
+    csv_parser.add_argument('--input', required=True, help='Input CSV file path')
+    csv_parser.add_argument('--output', help='Output CBF CSV file path')
+    csv_parser.set_defaults(func=cmd_csv)
+
+    # Provider command
+    provider_parser = subparsers.add_parser('{{ provider.name }}', help='Fetch from {{ provider.display_name }} API and upload to CloudZero')
+    provider_parser.add_argument('--month', help='Single month in YYYY-MM format')
+    provider_parser.add_argument('--months', help='Multiple months (comma-separated or range)')
+    provider_parser.add_argument('--test-connection', action='store_true', help='Test {{ provider.display_name }} connection only')
+    provider_parser.add_argument('--dry-run', action='store_true', help='Prepare but do not upload')
+    provider_parser.set_defaults(func=cmd_{{ provider.name }})
+
+    # Daily command
+    daily_parser = subparsers.add_parser('daily', help="Run daily sync for yesterday's data")
+    daily_parser.add_argument('--dry-run', action='store_true', help='Test run without upload')
+    daily_parser.set_defaults(func=cmd_daily)
+
+    # Test command
+    test_parser = subparsers.add_parser('test', help='Test {{ provider.display_name }} and CloudZero connections')
+    test_parser.set_defaults(func=cmd_test)
+
+    args = parser.parse_args()
+
+    if not args.command:
+        parser.print_help()
+        sys.exit(1)
+
+    print("{{ provider.display_name }} AnyCost Stream Adaptor")
+    print("=" * 50)
+
+    try:
+        result = args.func(args)
+        if result is False:
+            sys.exit(1)
+    except KeyboardInterrupt:
+        print("\nOperation cancelled by user")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

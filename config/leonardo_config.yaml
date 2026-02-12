@@ -1,0 +1,125 @@
+# Leonardo.ai Configuration
+# AI image/video generation API with credit-based billing (delta tracking)
+#
+# Credit pools:
+#   apiSubscriptionTokens - Monthly subscription pool (refreshes each billing cycle).
+#                           Credits are deducted from this pool first.
+#   apiPaidTokens         - Paid/rollover pool. Unused subscription credits transfer
+#                           here at month end. Once the subscription pool is exhausted,
+#                           credits are deducted from this pool. When both pools are
+#                           empty, auto-topups kick in at a surplus/overage fee.
+#
+# Tracking approach: snapshot the combined credit balance via GET /me and compute
+# the delta between consecutive readings. The delta represents credits consumed.
+
+provider:
+  name: "leonardo"
+  display_name: "Leonardo.ai"
+  service_type: "ai-image-generation"
+
+# API Configuration
+api:
+  base_url: "https://cloud.leonardo.ai/api/rest/v1"
+  auth_method: "bearer_token"
+  rate_limit: "10"
+  timeout: "30"
+
+# Authentication Requirements
+auth:
+  required_env_vars:
+    - "LEONARDO_API_KEY"
+  optional_env_vars: []
+  # Auth header: Authorization: Bearer <LEONARDO_API_KEY>
+
+# Endpoints
+endpoints:
+  # GET /me - user profile, token balances, renewal dates
+  me: "/me"
+
+# Response fields (GET /me -> user_details[])
+# user_details[].user.id:                  string (UUID)  - user identifier
+# user_details[].user.username:            string         - username
+# user_details[].tokenRenewalDate:         string         - plan token renewal timestamp
+# user_details[].paidTokens:               integer        - paid tokens (web/app)
+# user_details[].subscriptionTokens:       integer        - subscription tokens (web/app)
+# user_details[].subscriptionGptTokens:    integer        - GPT prompt generation tokens
+# user_details[].subscriptionModelTokens:  integer        - model training tokens
+# user_details[].apiConcurrencySlots:      integer        - API concurrency slots
+# user_details[].apiPaidTokens:            integer        - API paid token balance
+# user_details[].apiSubscriptionTokens:    integer        - API subscription token balance
+# user_details[].apiPlanTokenRenewalDate:  string         - API plan token renewal timestamp
+
+# Data Configuration
+data:
+  source_format: "json"
+  time_field: "apiPlanTokenRenewalDate"
+  cost_field: "apiSubscriptionTokens + apiPaidTokens"
+  resource_field: "service"
+
+# CBF (Common Billing Format) Field Mappings
+cbf_mapping:
+  # Required fields
+  "time/usage_start": "snapshot_timestamp"
+  "cost/cost": "credits_consumed * 0.0011"
+  "bill/invoice_id": "f'leonardo-{month}'"
+
+  # Line item columns
+  "lineitem/id": "f'leonardo-{timestamp}'"
+  "lineitem/type": "'Usage'"
+  "lineitem/description": "'Leonardo.ai API Credit Consumption'"
+  "lineitem/cloud_provider": "'leonardo'"
+
+  # Resource columns
+  "resource/id": "'leonardo:image-generation'"
+  "resource/service": "'image-generation'"
+  "resource/account": "'default'"
+  "resource/region": "'global'"
+  "resource/usage_family": "'api-credits'"
+
+  # Usage columns
+  "usage/amount": "credits_consumed"
+  "usage/units": "'credits'"
+
+  # Additional cost columns
+  "cost/amortized_cost": ""
+  "cost/on_demand_cost": ""
+
+# Dependencies
+dependencies:
+  - "requests>=2.28.0"
+  - "python-dotenv>=0.19.0"
+
+# Leonardo.ai Specific Configuration
+leonardo_config:
+  # CloudZero connection ID
+  cloudzero_connection_id: ""
+
+  # API endpoint for credit balance
+  credits_endpoint: "/me"
+
+  # Credit-to-USD conversion
+  # $0.0011 USD per credit (both subscription and paid pools)
+  credit_to_usd: 0.0011
+
+  # Credit pool tracking
+  # The adaptor should snapshot both pools independently so that consumption
+  # from each pool can be attributed separately if needed. The delta is
+  # calculated as: previous_total - current_total, where
+  # total = apiSubscriptionTokens + apiPaidTokens.
+  #
+  # Pool depletion order:
+  #   1. apiSubscriptionTokens (consumed first each month)
+  #   2. apiPaidTokens (consumed after subscription pool is exhausted)
+  #   3. Auto-topup / overage (once both pools hit zero)
+  token_pools:
+    - field: "apiSubscriptionTokens"
+      label: "API Subscription"
+    - field: "apiPaidTokens"
+      label: "API Paid"
+
+  # Contract details (if applicable)
+  contract_value_usd: 0
+  contract_start: ""
+
+  # Snapshot storage
+  snapshot_file: "state/leonardo_snapshots.csv"

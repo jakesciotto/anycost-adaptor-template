@@ -1,0 +1,49 @@
+# Complex tier 3 test fixture (CSV variant)
+provider:
+  name: "testenterprise"
+  display_name: "Test Enterprise"
+  service_type: "enterprise-platform"
+
+api:
+  base_url: "https://api.testenterprise.com"
+  auth_method: "bearer_token"
+
+auth:
+  required_env_vars:
+    - "TESTENTERPRISE_TOKEN"
+
+data:
+  source_format: "csv"
+  input_method: "file_upload"
+
+enterprise_config:
+  csv_structure:
+    header_rows_to_skip: 2
+    date_column: 0
+    date_format: "%b %Y"
+    cost_categories:
+      compute: 1
+      storage: 2
+      network: 3
+      support: 4
+  cost_categories:
+    - "compute"
+    - "storage"
+    - "network"
+    - "support"
+  fixed_costs:
+    - name: "support_plan"
+      monthly_amount: 5000.00
+      valid_until: "2026-12-31"
+      resource_id: "testenterprise:support_plan"
+  aggregation_method: "monthly"
+  resource_id_templates:
+    app_level: "testenterprise:{service}/{account}/{app}"
+    account_level: "testenterprise:{service}/{account}"
+  tags:
+    - "team"
+    - "app_name"
+
+dependencies:
+  - "requests>=2.28.0"
+  - "python-dotenv>=0.19.0"

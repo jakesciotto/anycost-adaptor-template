@@ -1,0 +1,114 @@
+"""
+{{ provider.display_name }} AnyCost Adaptor - Main Orchestration
+
+Coordinates data fetching, transformation, and upload to CloudZero.
+
+Generated from AnyCost Adaptor Template ({{ tier.value }})
+"""
+
+import sys
+import argparse
+from datetime import datetime, timedelta
+from pathlib import Path
+
+from {{ provider.name }}_config import {{ provider_class_name }}Config
+from {{ provider.name }}_client import {{ provider_class_name }}Client
+from {{ provider.name }}_transform import {{ provider_class_name }}Transform
+from cloudzero import CloudZeroClient
+
+
+class {{ provider_class_name }}AnycostAdaptor:
+    """Main adaptor: fetch from {{ provider.display_name }}, transform to CBF, upload to CloudZero."""
+
+    def __init__(self):
+        self.config = {{ provider_class_name }}Config()
+        self.client = {{ provider_class_name }}Client(self.config)
+        self.transform = {{ provider_class_name }}Transform()
+        self.cloudzero = CloudZeroClient()
+
+    def process_month(self, month: str, dry_run: bool = False):
+        """Process a single month of data.
+
+        Args:
+            month: Month in YYYY-MM format.
+            dry_run: If True, skip upload to CloudZero.
+        """
+        print(f"Processing {{ provider.display_name }} data for {month}...")
+
+        # Calculate date range
+        year, mon = month.split("-")
+        start_date = f"{year}-{mon}-01"
+        if int(mon) == 12:
+            end_date = f"{int(year) + 1}-01-01"
+        else:
+            end_date = f"{year}-{int(mon) + 1:02d}-01"
+
+{% if tier.value == "tier1_credit" %}
+        # Tier 1: Fetch credit snapshot and compute delta
+        raw_data = self.client.fetch_credit_snapshot()
+        cbf_records = self.transform.transform_credit_snapshot(raw_data, month)
+{% elif tier.value == "tier2_structured" %}
+        # Tier 2: Fetch structured billing data
+        raw_data = self.client.fetch_billing_data(start_date, end_date)
+        cbf_records = self.transform.transform_billing_data(raw_data, month)
+{% elif tier.value == "tier3_enterprise" %}
+{% if enterprise_config and enterprise_config.csv_structure %}
+        # Tier 3 (CSV): Process CSV file
+        raw_data = self.client.process_csv_file(f"input/{month}.csv")
+        cbf_records = self.transform.transform_usage_data(raw_data, month)
+{% else %}
+        # Tier 3 (Enterprise): Fetch complex usage data
+        raw_data = self.client.fetch_usage_data(start_date, end_date)
+        cbf_records = self.transform.transform_usage_data(raw_data, month)
+{% endif %}
+{% endif %}
+
+        if not cbf_records:
+            print(f"No records generated for {month}")
+            return
+
+        # Write CBF output
+        output_path = f"output/{{ provider.name }}_cbf_{month}.csv"
+        self.transform.write_cbf(cbf_records, output_path)
+
+        # Upload to CloudZero
+        if dry_run:
+            print(f"DRY RUN: Would upload {len(cbf_records)} records to CloudZero")
+        else:
+            self.cloudzero.upload_cbf(output_path)
+            print(f"Uploaded {len(cbf_records)} records to CloudZero")
+
+    def process_months(self, months_str: str, dry_run: bool = False):
+        """Process multiple months (comma-separated)."""
+        months = [m.strip() for m in months_str.split(",")]
+        for month in months:
+            self.process_month(month, dry_run)
+
+
+def main():
+    parser = argparse.ArgumentParser(description="{{ provider.display_name }} AnyCost Adaptor")
+    parser.add_argument("--month", help="Single month in YYYY-MM format")
+    parser.add_argument("--months", help="Multiple months (comma-separated)")
+    parser.add_argument("--test-connection", action="store_true", help="Test connection only")
+    parser.add_argument("--dry-run", action="store_true", help="Prepare but do not upload")
+
+    args = parser.parse_args()
+
+    adaptor = {{ provider_class_name }}AnycostAdaptor()
+
+    if args.test_connection:
+        from {{ provider.name }}_client import test_{{ provider.name }}_api_connection
+        success = test_{{ provider.name }}_api_connection()
+        sys.exit(0 if success else 1)
+
+    if args.months:
+        adaptor.process_months(args.months, dry_run=args.dry_run)
+    elif args.month:
+        adaptor.process_month(args.month, dry_run=args.dry_run)
+    else:
+        parser.print_help()
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

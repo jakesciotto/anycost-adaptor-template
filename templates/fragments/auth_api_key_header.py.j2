@@ -1,0 +1,7 @@
+    def _auth_headers(self):
+        """Custom API key header authentication."""
+        # Uses a provider-specific header name (e.g. xi-api-key for ElevenLabs)
+        return {
+            "xi-api-key": self.{{ auth.required_env_vars[0] | lower }},
+            "Content-Type": "application/json",
+        }

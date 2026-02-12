@@ -1,0 +1,63 @@
+# Confluent Cloud -- Tier 2 (Structured Billing)
+# Cloud streaming platform with structured billing API
+
+provider:
+  name: "confluent"
+  display_name: "Confluent Cloud"
+  service_type: "data-streaming"
+
+api:
+  base_url: "https://api.confluent.cloud"
+  auth_method: "basic_auth"
+  rate_limit: 10
+  timeout: 30
+  endpoints:
+    costs: "/billing/v1/costs"
+
+auth:
+  required_env_vars:
+    - "CONFLUENT_API_KEY"
+    - "CONFLUENT_API_SECRET"
+  optional_env_vars: []
+
+data:
+  source_format: "json"
+  time_field: "start_date"
+  cost_field: "amount"
+  resource_field: "resource_id"
+
+cbf_mapping:
+  time_usage_start: "start_date"
+  cost_cost: "amount"
+  bill_invoice_id: "f'confluent-{month}'"
+  lineitem_type: "Usage"
+  lineitem_cloud_provider: "confluent"
+  resource_usage_family: "cloud-streaming"
+
+structured_config:
+  root_data_key: "data"
+  line_type_field: "line_type"
+  field_mappings:
+    cost:
+      primary: "amount"
+      alternate: "original_amount"
+    date:
+      start: "start_date"
+      end: "end_date"
+    resource:
+      id: "resource.id"
+      environment: "resource.environment.id"
+      display_name: "resource.display_name"
+      product: "product"
+    usage:
+      quantity: "quantity"
+      unit: "unit"
+  tags:
+    - "environment"
+    - "display_name"
+    - "network_access_type"
+  resource_id_template: "confluent:{line_type}/{resource.id}"
+
+dependencies:
+  - "requests>=2.28.0"
+  - "python-dotenv>=0.19.0"

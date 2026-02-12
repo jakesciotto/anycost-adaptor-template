@@ -1,0 +1,37 @@
+    def transform_credit_snapshot(self, snapshot: dict, month: str) -> list[dict]:
+        """Transform a credit delta snapshot into CBF records.
+
+        Args:
+            snapshot: Dict from fetch_credit_snapshot().
+            month: Month string (YYYY-MM) for the invoice ID.
+
+        Returns:
+            List of CBF record dicts (typically one per snapshot).
+        """
+        credits_consumed = snapshot.get("credits_consumed", 0)
+        if credits_consumed <= 0:
+            return []
+
+{% if credit_config %}
+        credit_to_usd = {{ credit_config.credit_to_usd }}
+{% if credit_config.discounted_rate %}
+        discounted_rate = {{ credit_config.discounted_rate }}
+{% else %}
+        discounted_rate = credit_to_usd
+{% endif %}
+{% else %}
+        credit_to_usd = 0.01
+        discounted_rate = credit_to_usd
+{% endif %}
+
+        cost = credits_consumed * credit_to_usd
+        discounted_cost = credits_consumed * discounted_rate
+
+        record = self._build_cbf_record(
+            timestamp=snapshot["timestamp"],
+            cost=cost,
+            month=month,
+            credits_consumed=credits_consumed,
+            discounted_cost=discounted_cost,
+        )
+        return [record]

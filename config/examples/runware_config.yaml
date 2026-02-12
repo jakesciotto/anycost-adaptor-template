@@ -1,0 +1,48 @@
+# Runware -- Tier 1 (Credit Polling)
+# AI image generation API with credit-based billing
+
+provider:
+  name: "runware"
+  display_name: "Runware"
+  service_type: "ai-image-generation"
+
+api:
+  base_url: "https://api.runware.ai/v1"
+  auth_method: "api_key"
+  rate_limit: 10
+  timeout: 30
+
+auth:
+  required_env_vars:
+    - "RUNWARE_API_KEY"
+  optional_env_vars: []
+
+data:
+  source_format: "json"
+  time_field: "timestamp"
+  cost_field: "cost"
+  resource_field: "service"
+
+cbf_mapping:
+  time_usage_start: "snapshot_timestamp"
+  cost_cost: "credits_consumed * credit_to_usd"
+  bill_invoice_id: "f'runware-{month}'"
+  lineitem_type: "Usage"
+  lineitem_description: "Runware API Credit Consumption"
+  lineitem_cloud_provider: "runware"
+  resource_id: "runware:image-generation"
+  resource_service: "image-generation"
+  resource_usage_family: "api-credits"
+  usage_units: "credits"
+  cost_discounted_cost: "credits_consumed * discounted_rate"
+
+credit_config:
+  credits_endpoint: "/credits"
+  credit_to_usd: 0.01
+  discount_rate: 0.30
+  discounted_rate: 0.007
+  snapshot_file: "data/runware_snapshots.csv"
+
+dependencies:
+  - "requests>=2.28.0"
+  - "python-dotenv>=0.19.0"
