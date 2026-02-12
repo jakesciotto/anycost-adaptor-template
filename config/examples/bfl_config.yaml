@@ -25,7 +25,7 @@ data:
 
 cbf_mapping:
   time_usage_start: "snapshot_timestamp"
-  cost_cost: "credits_consumed * 0.01"
+  cost_cost: "credits_consumed * credit_to_usd"
   bill_invoice_id: "f'bfl-{month}'"
   lineitem_type: "Usage"
   lineitem_description: "BFL API Credit Consumption"
@@ -36,13 +36,13 @@ cbf_mapping:
   resource_region: "global"
   resource_usage_family: "api-credits"
   usage_units: "credits"
-  cost_discounted_cost: "credits_consumed * 0.007"
+  cost_discounted_cost: "credits_consumed * discounted_rate"
 
 credit_config:
   credits_endpoint: "/me"
-  credit_to_usd: 0.01
-  discount_rate: 0.30
-  discounted_rate: 0.007
+  credit_to_usd: 0.0  # Set your credit-to-USD rate
+  discount_rate: 0.0  # Set your negotiated discount rate
+  discounted_rate: 0.0  # Set your effective discounted rate per credit
   snapshot_file: "state/bfl_snapshots.csv"
   model_pricing:
     flux_kontext_pro: 4

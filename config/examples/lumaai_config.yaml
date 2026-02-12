@@ -38,8 +38,8 @@ cbf_mapping:
 credit_config:
   credits_endpoint: "/credits"
   credit_to_usd: 0.0
-  contract_value_usd: 1300000
-  contract_start: "2025-12-08"
+  contract_value_usd: 0  # Set your contract value
+  contract_start: ""  # Set your contract start date (YYYY-MM-DD)
   snapshot_file: "state/lumaai_snapshots.csv"
 
 dependencies:

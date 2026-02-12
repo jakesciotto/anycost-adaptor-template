@@ -27,7 +27,7 @@ data:
 
 cbf_mapping:
   time_usage_start: "snapshot_timestamp"
-  cost_cost: "credits_consumed * 0.0011"
+  cost_cost: "credits_consumed * credit_to_usd"
   bill_invoice_id: "f'leonardo-{month}'"
   lineitem_type: "Usage"
   lineitem_description: "Leonardo.ai API Credit Consumption"
@@ -41,7 +41,7 @@ cbf_mapping:
 
 credit_config:
   credits_endpoint: "/me"
-  credit_to_usd: 0.0011
+  credit_to_usd: 0.0  # Set your credit-to-USD rate
   token_pools:
     - field: "apiSubscriptionTokens"
       label: "API Subscription"

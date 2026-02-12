@@ -38,9 +38,9 @@ cbf_mapping:
 
 credit_config:
   credits_endpoint: "/credits"
-  credit_to_usd: 0.01
-  discount_rate: 0.30
-  discounted_rate: 0.007
+  credit_to_usd: 0.0  # Set your credit-to-USD rate
+  discount_rate: 0.0  # Set your negotiated discount rate
+  discounted_rate: 0.0  # Set your effective discounted rate per credit
   snapshot_file: "state/runware_snapshots.csv"
 
 dependencies:

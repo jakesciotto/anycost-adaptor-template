@@ -109,16 +109,9 @@ elevenlabs_config:
   user_endpoint: "/user"
 
   # Character-to-USD conversion
-  # ElevenLabs pricing varies by plan tier. Determine by dividing
-  # the monthly plan cost by the character_limit for the tier.
-  # Example tiers (as of early 2025):
-  #   Free:       10,000 chars/mo   ($0)
-  #   Starter:    30,000 chars/mo   ($5/mo)   ~ $0.000167/char
-  #   Creator:    100,000 chars/mo  ($22/mo)  ~ $0.000220/char
-  #   Pro:        500,000 chars/mo  ($99/mo)  ~ $0.000198/char
-  #   Scale:      2,000,000 chars/mo ($330/mo) ~ $0.000165/char
-  #   Business:   custom
-  character_to_usd: 0.0  # TODO: set based on actual plan tier pricing
+  # Determine by dividing your monthly plan cost by the character_limit
+  # for your tier. See ElevenLabs pricing page for current rates.
+  character_to_usd: 0.0  # Set based on your plan tier pricing
 
   # Contract details (if applicable)
   contract_value_usd: 0

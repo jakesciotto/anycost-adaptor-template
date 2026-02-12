@@ -19,13 +19,13 @@ auth:
     - "SUMO_DEPLOYMENT"        # SumoLogic deployment (us1, us2, eu, au)
     - "SUMO_ORG_ID"           # Your SumoLogic organization ID
   optional_env_vars:
-    - "LOG_CONTINUOUS_CREDIT_RATE"        # Default: 20
-    - "LOG_FREQUENT_CREDIT_RATE"          # Default: 9
-    - "LOG_INFREQUENT_CREDIT_RATE"        # Default: 0.4
-    - "LOG_INFREQUENT_SCAN_CREDIT_RATE"   # Default: 0.016
-    - "METRICS_CREDIT_RATE"               # Default: 3
-    - "TRACING_CREDIT_RATE"               # Default: 14
-    - "COST_PER_CREDIT"                   # Default: 0.15
+    - "LOG_CONTINUOUS_CREDIT_RATE"        # Set your rate
+    - "LOG_FREQUENT_CREDIT_RATE"          # Set your rate
+    - "LOG_INFREQUENT_CREDIT_RATE"        # Set your rate
+    - "LOG_INFREQUENT_SCAN_CREDIT_RATE"   # Set your rate
+    - "METRICS_CREDIT_RATE"               # Set your rate
+    - "TRACING_CREDIT_RATE"               # Set your rate
+    - "COST_PER_CREDIT"                   # Set your cost per credit
 
 data:
   source_format: "json"

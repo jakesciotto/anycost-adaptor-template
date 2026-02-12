@@ -66,9 +66,9 @@ runware_config:
   cloudzero_connection_id: ""
 
   # Pricing calculation
-  credit_to_usd: 0.01  # 1 credit = $0.01 USD (configurable)
-  discount_rate: 0.30  # 30% discount (configurable)
-  discounted_rate: 0.007  # 1 credit = $0.007 after 30% discount
+  credit_to_usd: 0.0  # Set your credit-to-USD rate
+  discount_rate: 0.0  # Set your negotiated discount rate
+  discounted_rate: 0.0  # Set your effective discounted rate per credit
 
   # Snapshot storage
   snapshot_file: "state/runware_snapshots.csv"

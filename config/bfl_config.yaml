@@ -30,7 +30,7 @@ data:
 cbf_mapping:
   # Required fields
   "time/usage_start": "snapshot_timestamp"
-  "cost/cost": "credits_consumed * 0.01"  # Full undiscounted cost
+  "cost/cost": "credits_consumed * credit_to_usd"
   "bill/invoice_id": "f'bfl-{month}'"
 
   # Line item columns
@@ -51,7 +51,7 @@ cbf_mapping:
   "usage/units": "'credits'"
 
   # Additional cost columns
-  "cost/discounted_cost": "credits_consumed * 0.007"  # 30% discount (pay 70%)
+  "cost/discounted_cost": "credits_consumed * discounted_rate"
   "cost/amortized_cost": ""
   "cost/on_demand_cost": ""
 
@@ -80,9 +80,9 @@ bfl_config:
     flux_1_1_ultra_finetuned: 7
 
   # Pricing calculation
-  credit_to_usd: 0.01  # 1 credit = $0.01 USD
-  discount_rate: 0.30  # 30% discount
-  discounted_rate: 0.007  # 1 credit = $0.007 after 30% discount
+  credit_to_usd: 0.0  # Set your credit-to-USD rate
+  discount_rate: 0.0  # Set your negotiated discount rate
+  discounted_rate: 0.0  # Set your effective discounted rate per credit
 
   # Snapshot storage
   snapshot_file: "state/bfl_snapshots.csv"

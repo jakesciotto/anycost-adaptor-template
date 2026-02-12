@@ -60,7 +60,7 @@ data:
 cbf_mapping:
   # Required fields
   "time/usage_start": "snapshot_timestamp"
-  "cost/cost": "credits_consumed * 0.0011"
+  "cost/cost": "credits_consumed * credit_to_usd"
   "bill/invoice_id": "f'leonardo-{month}'"
 
   # Line item columns
@@ -98,8 +98,7 @@ leonardo_config:
   credits_endpoint: "/me"
 
   # Credit-to-USD conversion
-  # $0.0011 USD per credit (both subscription and paid pools)
-  credit_to_usd: 0.0011
+  credit_to_usd: 0.0  # Set your credit-to-USD rate
 
   # Credit pool tracking
   # The adaptor should snapshot both pools independently so that consumption

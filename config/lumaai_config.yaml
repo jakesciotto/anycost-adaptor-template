@@ -73,9 +73,9 @@ lumaai_config:
   # credit delta before/after the generation.
   credit_to_usd: 0.0  # TODO: set once conversion rate is confirmed
 
-  # Contract: $1.3M commitment starting 12/8/2025
-  contract_value_usd: 1300000
-  contract_start: "2025-12-08"
+  # Contract details (if applicable)
+  contract_value_usd: 0  # Set your contract value
+  contract_start: ""  # Set your contract start date (YYYY-MM-DD)
 
   # Snapshot storage
   snapshot_file: "state/lumaai_snapshots.csv"

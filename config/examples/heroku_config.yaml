@@ -37,14 +37,14 @@ enterprise_config:
   nested_response: true
   pricing_rules:
     - name: "dyno_pricing"
-      contracted_count: 3000
-      below_contracted_price: 19.0
-      above_contracted_price: 18.0
+      contracted_count: 0  # Set your contracted dyno count
+      below_contracted_price: 0.0  # Set your below-contract per-dyno price
+      above_contracted_price: 0.0  # Set your above-contract per-dyno price
       cumulative_tracking: true
   fixed_costs:
     - name: "premier_success_plan"
-      monthly_amount: 14846.40
-      valid_until: "2025-10-30"
+      monthly_amount: 0.0  # Set your monthly support plan cost
+      valid_until: ""  # Set contract expiration date (YYYY-MM-DD)
       resource_id: "heroku:premier_success_plan"
   cost_categories:
     - "dynos"
