@@ -20,12 +20,12 @@ def print_banner():
     ))
 
 
-def print_tier_info(tier: str, description: str):
-    """Print tier detection result."""
+def print_class_info(adaptor_class: str, description: str):
+    """Print adaptor class detection result."""
     table = Table(show_header=False, box=None, padding=(0, 2))
     table.add_column(style="bold cyan")
     table.add_column()
-    table.add_row("Detected tier:", tier)
+    table.add_row("Detected class:", adaptor_class)
     table.add_row("Description:", description)
     console.print(table)
 
@@ -46,7 +46,7 @@ def print_config_summary(config_dict: dict):
     table.add_row("API Base URL", api.get("base_url", ""))
     table.add_row("Auth Method", api.get("auth_method", ""))
     table.add_row("Required Env Vars", ", ".join(auth.get("required_env_vars", [])))
-    table.add_row("Tier", config_dict.get("tier", "auto-detect"))
+    table.add_row("Class", config_dict.get("adaptor_class", "auto-detect"))
 
     console.print(table)
 

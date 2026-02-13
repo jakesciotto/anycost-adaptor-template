@@ -2,15 +2,15 @@
 {{ provider.display_name }} AnyCost Adaptor - API Client
 
 Handles API communication with {{ provider.display_name }}.
-{% if tier.value == "tier1_credit" %}
-Tier 1 (Credit Polling): polls a single endpoint, computes credit delta.
-{% elif tier.value == "tier2_structured" %}
-Tier 2 (Structured Billing): fetches from multiple endpoints, returns structured data.
-{% elif tier.value == "tier3_enterprise" %}
-Tier 3 (Enterprise): handles complex API responses or CSV file processing.
+{% if adaptor_class.value == "class1_credit" %}
+Class 1 (Credit Polling): polls a single endpoint, computes credit delta.
+{% elif adaptor_class.value == "class2_structured" %}
+Class 2 (Structured Billing): fetches from multiple endpoints, returns structured data.
+{% elif adaptor_class.value == "class3_enterprise" %}
+Class 3 (Enterprise): handles complex API responses or CSV file processing.
 {% endif %}
 
-Generated from AnyCost Adaptor Template ({{ tier.value }})
+Generated from AnyCost Adaptor Template ({{ adaptor_class.value }})
 """
 
 import time
@@ -40,9 +40,9 @@ class {{ provider_class_name }}Client:
 
         return response.json()
 
-{% if tier.value == "tier1_credit" %}
+{% if adaptor_class.value == "class1_credit" %}
 {% include 'fragments/polling_credit_delta.py.j2' %}
-{% elif tier.value == "tier2_structured" %}
+{% elif adaptor_class.value == "class2_structured" %}
     def fetch_billing_data(self, start_date: str, end_date: str) -> list[dict]:
         """Fetch structured billing data for a date range.
 
@@ -62,7 +62,7 @@ class {{ provider_class_name }}Client:
         # return response.get("{{ structured_config.root_data_key }}", [])
         raise NotImplementedError("Implement fetch_billing_data for {{ provider.display_name }}")
 
-{% elif tier.value == "tier3_enterprise" %}
+{% elif adaptor_class.value == "class3_enterprise" %}
 {% if enterprise_config and enterprise_config.csv_structure %}
 {% include 'fragments/processing_csv.py.j2' %}
 {% else %}
@@ -86,7 +86,7 @@ def test_{{ provider.name }}_api_connection() -> bool:
     """Test the {{ provider.display_name }} API connection."""
     try:
         client = {{ provider_class_name }}Client()
-{% if tier.value == "tier1_credit" and api.endpoints %}
+{% if adaptor_class.value == "class1_credit" and api.endpoints %}
 {% set first_endpoint = api.endpoints.values() | first %}
         client._request("GET", "{{ first_endpoint }}")
 {% else %}

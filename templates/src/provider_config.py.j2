@@ -3,7 +3,7 @@
 
 Handles authentication, environment variable loading, and provider configuration.
 
-Generated from AnyCost Adaptor Template ({{ tier.value }})
+Generated from AnyCost Adaptor Template ({{ adaptor_class.value }})
 """
 
 import os
@@ -59,7 +59,7 @@ class {{ provider_class_name }}Config:
         self.api_base_url = "{{ api.base_url }}"
         self.api_timeout = {{ api.timeout }}
         self.api_rate_limit = {{ api.rate_limit }}
-{% if tier.value == "tier1_credit" and credit_config %}
+{% if adaptor_class.value == "class1_credit" and credit_config %}
 
         # Credit config
         self.credit_to_usd = float(os.getenv("CREDIT_TO_USD", "{{ credit_config.credit_to_usd }}"))

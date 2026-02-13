@@ -1,4 +1,4 @@
-# Complex tier 3 test fixture (CSV variant)
+# Complex class 3 test fixture (CSV variant)
 provider:
   name: "testenterprise"
   display_name: "Test Enterprise"

@@ -1,4 +1,4 @@
-# Full tier 2 test fixture
+# Full class 2 test fixture
 provider:
   name: "testbilling"
   display_name: "Test Billing Provider"

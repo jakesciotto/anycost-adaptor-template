@@ -1,6 +1,7 @@
 [project]
-name = "anycost-generator"
-version = "1.0.0"
+name = "anycost-adaptor-template"
+version = "2.0.0"
+license = { text = "Apache-2.0" }
 description = "AnyCost Adaptor Generator - generates customized CloudZero AnyCost Stream adaptors"
 requires-python = ">=3.10"
 dependencies = [

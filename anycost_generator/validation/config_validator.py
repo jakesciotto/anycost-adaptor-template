@@ -2,7 +2,7 @@
 
 Catches issues like:
 - Empty required fields that Pydantic allows as valid strings
-- Inconsistent tier config (e.g. credit_config on a tier3 provider)
+- Inconsistent class config (e.g. credit_config on a class3 provider)
 - URLs that don't look valid
 - Env var naming conventions
 """
@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from urllib.parse import urlparse
 
-from anycost_generator.config.schema import ProviderConfig, Tier
+from anycost_generator.config.schema import ProviderConfig, AdaptorClass
 
 
 class ConfigValidationError:
@@ -63,8 +63,8 @@ def validate_config(config: ProviderConfig) -> list[ConfigValidationError]:
                 severity="warning",
             ))
 
-    # Tier-specific consistency checks
-    if config.tier == Tier.TIER1_CREDIT and config.credit_config:
+    # Class-specific consistency checks
+    if config.adaptor_class == AdaptorClass.CLASS1_CREDIT and config.credit_config:
         if config.credit_config.credit_to_usd == 0.0:
             errors.append(ConfigValidationError(
                 "credit_config.credit_to_usd",
@@ -72,7 +72,7 @@ def validate_config(config: ProviderConfig) -> list[ConfigValidationError]:
                 severity="warning",
             ))
 
-    if config.tier == Tier.TIER3_ENTERPRISE and config.enterprise_config:
+    if config.adaptor_class == AdaptorClass.CLASS3_ENTERPRISE and config.enterprise_config:
         ec = config.enterprise_config
         if not ec.csv_structure and not ec.nested_response and not ec.cost_categories:
             errors.append(ConfigValidationError(

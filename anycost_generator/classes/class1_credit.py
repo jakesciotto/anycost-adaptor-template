@@ -1,4 +1,4 @@
-"""Tier 1: Credit polling strategy.
+"""Class 1: Credit polling strategy.
 
 Simple credit-based providers (BFL, Runware, Leonardo, Luma).
 Poll a single endpoint, compute delta, convert credits to USD.
@@ -8,10 +8,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from anycost_generator.tiers.base import TierStrategy
+from anycost_generator.classes.base import AdaptorClassStrategy
 
 
-class Tier1CreditStrategy(TierStrategy):
+class Class1CreditStrategy(AdaptorClassStrategy):
 
     def get_template_manifest(self) -> list[tuple[str, str]]:
         return self.get_base_templates() + self.get_src_templates()

@@ -1,4 +1,4 @@
-"""End-to-end generation tests for Tier 2 (structured billing)."""
+"""End-to-end generation tests for Class 2 (structured billing)."""
 
 import ast
 from pathlib import Path
@@ -10,10 +10,10 @@ from anycost_generator.engine.generator import AdaptorGenerator
 from anycost_generator.validation.output_validator import validate_output
 
 
-class TestTier2Generation:
+class TestClass2Generation:
 
-    def test_generate_from_fixture(self, full_tier2_path, tmp_output):
-        config = load_from_yaml(full_tier2_path)
+    def test_generate_from_fixture(self, full_class2_path, tmp_output):
+        config = load_from_yaml(full_class2_path)
         gen = AdaptorGenerator(config)
         output = gen.generate(tmp_output)
 
@@ -22,8 +22,8 @@ class TestTier2Generation:
         assert (output / "src" / "testbilling_transform.py").exists()
         assert (output / "src" / "testbilling_anycost_adaptor.py").exists()
 
-    def test_python_files_valid_syntax(self, full_tier2_path, tmp_output):
-        config = load_from_yaml(full_tier2_path)
+    def test_python_files_valid_syntax(self, full_class2_path, tmp_output):
+        config = load_from_yaml(full_class2_path)
         gen = AdaptorGenerator(config)
         output = gen.generate(tmp_output)
 
@@ -31,8 +31,8 @@ class TestTier2Generation:
             source = py_file.read_text()
             ast.parse(source)
 
-    def test_no_unresolved_placeholders(self, full_tier2_path, tmp_output):
-        config = load_from_yaml(full_tier2_path)
+    def test_no_unresolved_placeholders(self, full_class2_path, tmp_output):
+        config = load_from_yaml(full_class2_path)
         gen = AdaptorGenerator(config)
         output = gen.generate(tmp_output)
 
@@ -40,16 +40,16 @@ class TestTier2Generation:
         errors = [i for i in issues if i.severity == "error"]
         assert len(errors) == 0, f"Validation errors: {[str(e) for e in errors]}"
 
-    def test_basic_auth_in_config(self, full_tier2_path, tmp_output):
-        config = load_from_yaml(full_tier2_path)
+    def test_basic_auth_in_config(self, full_class2_path, tmp_output):
+        config = load_from_yaml(full_class2_path)
         gen = AdaptorGenerator(config)
         output = gen.generate(tmp_output)
 
         config_code = (output / "src" / "testbilling_config.py").read_text()
         assert "Basic" in config_code or "base64" in config_code
 
-    def test_fetch_billing_data_method(self, full_tier2_path, tmp_output):
-        config = load_from_yaml(full_tier2_path)
+    def test_fetch_billing_data_method(self, full_class2_path, tmp_output):
+        config = load_from_yaml(full_class2_path)
         gen = AdaptorGenerator(config)
         output = gen.generate(tmp_output)
 

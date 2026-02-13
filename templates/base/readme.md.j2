@@ -41,7 +41,7 @@ python anycost.py daily
 # Dry run (test without uploading)
 python anycost.py {{ provider.name }} --month 2024-08 --dry-run
 ```
-{% if tier.value == "tier3_enterprise" and enterprise_config and enterprise_config.csv_structure %}
+{% if adaptor_class.value == "class3_enterprise" and enterprise_config and enterprise_config.csv_structure %}
 
 ## CSV Processing
 

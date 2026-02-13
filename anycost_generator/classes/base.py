@@ -1,6 +1,6 @@
-"""Base tier strategy ABC.
+"""Base adaptor class strategy ABC.
 
-Each tier strategy determines which templates to render and what
+Each adaptor class strategy determines which templates to render and what
 extra context they need.
 """
 
@@ -12,8 +12,8 @@ from typing import Any
 from anycost_generator.config.schema import ProviderConfig
 
 
-class TierStrategy(ABC):
-    """Abstract base for tier-specific generation strategies."""
+class AdaptorClassStrategy(ABC):
+    """Abstract base for class-specific generation strategies."""
 
     def __init__(self, config: ProviderConfig):
         self.config = config
@@ -28,10 +28,10 @@ class TierStrategy(ABC):
 
     @abstractmethod
     def get_extra_context(self) -> dict[str, Any]:
-        """Return tier-specific extra template context variables."""
+        """Return class-specific extra template context variables."""
 
     def get_base_templates(self) -> list[tuple[str, str]]:
-        """Templates shared by all tiers."""
+        """Templates shared by all adaptor classes."""
         name = self.config.provider.name
         return [
             ("base/anycost.py.j2", "anycost.py"),

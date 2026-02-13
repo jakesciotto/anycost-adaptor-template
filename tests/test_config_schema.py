@@ -6,7 +6,7 @@ from anycost_generator.config.schema import (
     AuthMethod,
     CreditConfig,
     ProviderConfig,
-    Tier,
+    AdaptorClass,
 )
 from anycost_generator.config.loader import load_from_dict, load_from_yaml
 
@@ -20,44 +20,44 @@ class TestProviderConfig:
             "auth": {"required_env_vars": ["TEST_KEY"]},
         })
         assert config.provider.name == "test"
-        assert config.tier == Tier.TIER1_CREDIT
+        assert config.adaptor_class == AdaptorClass.CLASS1_CREDIT
         assert config.credit_config is not None
 
-    def test_tier_auto_detection_credit(self):
+    def test_adaptor_class_auto_detection_credit(self):
         config = load_from_dict({
             "provider": {"name": "test", "display_name": "Test", "service_type": "testing"},
             "api": {"base_url": "https://api.test.com", "auth_method": "api_key"},
             "auth": {"required_env_vars": ["TEST_KEY"]},
             "credit_config": {"credit_to_usd": 0.01},
         })
-        assert config.tier == Tier.TIER1_CREDIT
+        assert config.adaptor_class == AdaptorClass.CLASS1_CREDIT
 
-    def test_tier_auto_detection_structured(self):
+    def test_adaptor_class_auto_detection_structured(self):
         config = load_from_dict({
             "provider": {"name": "test", "display_name": "Test", "service_type": "testing"},
             "api": {"base_url": "https://api.test.com", "auth_method": "basic_auth"},
             "auth": {"required_env_vars": ["TEST_KEY", "TEST_SECRET"]},
             "structured_config": {"root_data_key": "data"},
         })
-        assert config.tier == Tier.TIER2_STRUCTURED
+        assert config.adaptor_class == AdaptorClass.CLASS2_STRUCTURED
 
-    def test_tier_auto_detection_enterprise(self):
+    def test_adaptor_class_auto_detection_enterprise(self):
         config = load_from_dict({
             "provider": {"name": "test", "display_name": "Test", "service_type": "testing"},
             "api": {"base_url": "https://api.test.com", "auth_method": "bearer_token"},
             "auth": {"required_env_vars": ["TEST_TOKEN"]},
             "enterprise_config": {"nested_response": True},
         })
-        assert config.tier == Tier.TIER3_ENTERPRISE
+        assert config.adaptor_class == AdaptorClass.CLASS3_ENTERPRISE
 
-    def test_explicit_tier_override(self):
+    def test_explicit_adaptor_class_override(self):
         config = load_from_dict({
             "provider": {"name": "test", "display_name": "Test", "service_type": "testing"},
             "api": {"base_url": "https://api.test.com", "auth_method": "api_key"},
             "auth": {"required_env_vars": ["TEST_KEY"]},
-            "tier": "tier2_structured",
+            "adaptor_class": "class2_structured",
         })
-        assert config.tier == Tier.TIER2_STRUCTURED
+        assert config.adaptor_class == AdaptorClass.CLASS2_STRUCTURED
 
     def test_derived_properties(self):
         config = load_from_dict({
@@ -88,22 +88,22 @@ class TestProviderConfig:
 
 class TestLoadFromYaml:
 
-    def test_load_minimal_tier1(self, minimal_tier1_path):
-        config = load_from_yaml(minimal_tier1_path)
+    def test_load_minimal_class1(self, minimal_class1_path):
+        config = load_from_yaml(minimal_class1_path)
         assert config.provider.name == "testprovider"
-        assert config.tier == Tier.TIER1_CREDIT
+        assert config.adaptor_class == AdaptorClass.CLASS1_CREDIT
         assert config.credit_config.credit_to_usd == 0.01
 
-    def test_load_full_tier2(self, full_tier2_path):
-        config = load_from_yaml(full_tier2_path)
+    def test_load_full_class2(self, full_class2_path):
+        config = load_from_yaml(full_class2_path)
         assert config.provider.name == "testbilling"
-        assert config.tier == Tier.TIER2_STRUCTURED
+        assert config.adaptor_class == AdaptorClass.CLASS2_STRUCTURED
         assert config.structured_config.root_data_key == "data"
 
-    def test_load_complex_tier3(self, complex_tier3_path):
-        config = load_from_yaml(complex_tier3_path)
+    def test_load_complex_class3(self, complex_class3_path):
+        config = load_from_yaml(complex_class3_path)
         assert config.provider.name == "testenterprise"
-        assert config.tier == Tier.TIER3_ENTERPRISE
+        assert config.adaptor_class == AdaptorClass.CLASS3_ENTERPRISE
         assert config.enterprise_config.csv_structure is not None
         assert config.enterprise_config.csv_structure.header_rows_to_skip == 2
 
@@ -131,7 +131,7 @@ class TestLegacyConfigNormalization:
             "auth": {"required_env_vars": ["BFL_API_KEY"]},
             "bfl_config": {"credit_to_usd": 0.01, "credits_endpoint": "/me"},
         })
-        assert config.tier == Tier.TIER1_CREDIT
+        assert config.adaptor_class == AdaptorClass.CLASS1_CREDIT
         assert config.credit_config.credit_to_usd == 0.01
 
     def test_top_level_endpoints_moved_to_api(self):

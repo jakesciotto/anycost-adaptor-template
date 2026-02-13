@@ -39,7 +39,7 @@ def _normalize_legacy_config(raw: dict[str, Any]) -> dict[str, Any]:
     if "cbf_mapping" in data:
         data["cbf_mapping"] = _normalize_cbf_mapping(data["cbf_mapping"])
 
-    # Map provider-specific config sections to tier-generic names
+    # Map provider-specific config sections to class-generic names
     provider_name = data.get("provider", {}).get("name", "")
     legacy_key = f"{provider_name}_config"
     if legacy_key in data and "credit_config" not in data:

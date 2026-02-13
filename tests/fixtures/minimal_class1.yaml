@@ -1,4 +1,4 @@
-# Minimal tier 1 test fixture
+# Minimal class 1 test fixture
 provider:
   name: "testprovider"
   display_name: "Test Provider"

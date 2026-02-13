@@ -2,7 +2,7 @@
 
 Generate CloudZero AnyCost Stream adaptors for any provider. Define your provider's API and billing shape in YAML (or walk through interactive prompts), and the generator produces a ready-to-customize Python project with authentication, API client, data transformation, and CloudZero upload wiring.
 
-## Install
+## Quickstart / Installation Instructions
 
 ```bash
 pip install .
@@ -29,17 +29,30 @@ python -m anycost_generator interactive
 python -m anycost_generator validate --config config/examples/bfl_config.yaml
 ```
 
-## Tiers
+## License
+
+This project is licensed under the Apache License, Version 2.0 — see the
+[LICENSE](./LICENSE) file for details.
+
+## Trademarks
+
+"CloudZero" and the CloudZero logo are trademarks of CloudZero, Inc. Use of
+these trademarks is limited to identification and attribution as required by
+the Apache License. You may not use CloudZero trademarks in a way that
+suggests endorsement or affiliation without written permission.
+
+
+## Adaptor Classes
 
 The generator selects templates based on your provider's billing complexity:
 
-| Tier | Pattern | Examples |
-|------|---------|----------|
-| **tier1_credit** | Poll single endpoint, compute credit delta, convert to USD | BFL, Runware, Leonardo, Luma, ElevenLabs |
-| **tier2_structured** | Multiple endpoints, structured line items, field mapping | Confluent, SumoLogic |
-| **tier3_enterprise** | CSV processing or nested API, contract pricing, aggregation | Heroku, Splunk |
+| Class | Pattern | Examples |
+|-------|---------|----------|
+| **class1_credit** | Poll single endpoint, compute credit delta, convert to USD | BFL, Runware, Leonardo, Luma, ElevenLabs |
+| **class2_structured** | Multiple endpoints, structured line items, field mapping | Confluent, SumoLogic |
+| **class3_enterprise** | CSV processing or nested API, contract pricing, aggregation | Heroku, Splunk |
 
-The tier is auto-detected from your config (presence of `credit_config`, `structured_config`, or `enterprise_config`), or set explicitly with `tier:`.
+The adaptor class is auto-detected from your config (presence of `credit_config`, `structured_config`, or `enterprise_config`), or set explicitly with `adaptor_class:`.
 
 ## Config Structure
 
@@ -60,7 +73,7 @@ auth:
     - "MYPROVIDER_API_KEY"
 ```
 
-Plus one tier-specific section (`credit_config`, `structured_config`, or `enterprise_config`). See `config/schema_reference.yaml` for all fields, or browse `config/examples/` for working configs.
+Plus one class-specific section (`credit_config`, `structured_config`, or `enterprise_config`). See `config/schema_reference.yaml` for all fields, or browse `config/examples/` for working configs.
 
 ## Generated Output
 
@@ -89,13 +102,13 @@ python anycost.py myprovider --month 2025-01
 
 ## Examples
 
-| Config | Tier | Notes |
-|--------|------|-------|
-| `config/examples/bfl_config.yaml` | tier1 | Credit polling with discount rate |
-| `config/examples/leonardo_config.yaml` | tier1 | Multi-pool credit tracking |
-| `config/examples/confluent_config.yaml` | tier2 | Structured billing with field mapping |
-| `config/examples/heroku_config.yaml` | tier3 | Nested API with contract pricing |
-| `config/examples/splunk_config.yaml` | tier3 | CSV file processing |
+| Config | Class | Notes |
+|--------|-------|-------|
+| `config/examples/bfl_config.yaml` | class1 | Credit polling with discount rate |
+| `config/examples/leonardo_config.yaml` | class1 | Multi-pool credit tracking |
+| `config/examples/confluent_config.yaml` | class2 | Structured billing with field mapping |
+| `config/examples/heroku_config.yaml` | class3 | Nested API with contract pricing |
+| `config/examples/splunk_config.yaml` | class3 | CSV file processing |
 
 ## Testing
 
@@ -110,11 +123,11 @@ anycost_generator/                  # Generator package
   cli/                              # CLI (generate, validate, interactive)
   config/                           # Pydantic schema + YAML loader
   engine/                           # Jinja2 renderer + orchestrator
-  tiers/                            # Tier strategies + resolver
+  classes/                          # Adaptor class strategies + resolver
   validation/                       # Config + output validators
 templates/                          # Jinja2 templates
   base/                             # Shared (anycost.py, pyproject.toml, etc.)
-  src/                              # Per-tier conditional templates
+  src/                              # Per-class conditional templates
   fragments/                        # Reusable includes (auth, transforms)
   static/                           # Copied verbatim (cloudzero.py)
 config/examples/                    # Working configs for real providers

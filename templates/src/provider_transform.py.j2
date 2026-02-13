@@ -3,15 +3,15 @@
 
 Transforms {{ provider.display_name }} data into CloudZero Common Billing Format (CBF).
 Follows the CBF spec: https://docs.cloudzero.com/docs/anycost-common-bill-format-cbf
-{% if tier.value == "tier1_credit" %}
-Tier 1 (Credit Polling): converts credit delta snapshots to CBF records.
-{% elif tier.value == "tier2_structured" %}
-Tier 2 (Structured Billing): maps structured billing line items to CBF records.
-{% elif tier.value == "tier3_enterprise" %}
-Tier 3 (Enterprise): processes complex usage data into CBF records.
+{% if adaptor_class.value == "class1_credit" %}
+Class 1 (Credit Polling): converts credit delta snapshots to CBF records.
+{% elif adaptor_class.value == "class2_structured" %}
+Class 2 (Structured Billing): maps structured billing line items to CBF records.
+{% elif adaptor_class.value == "class3_enterprise" %}
+Class 3 (Enterprise): processes complex usage data into CBF records.
 {% endif %}
 
-Generated from AnyCost Adaptor Template ({{ tier.value }})
+Generated from AnyCost Adaptor Template ({{ adaptor_class.value }})
 """
 
 import csv
@@ -57,11 +57,11 @@ CBF_COLUMN_ORDER = [
 class {{ provider_class_name }}Transform:
     """Transform {{ provider.display_name }} data to CloudZero CBF format."""
 
-{% if tier.value == "tier1_credit" %}
+{% if adaptor_class.value == "class1_credit" %}
 {% include 'fragments/transform_simple.py.j2' %}
-{% elif tier.value == "tier2_structured" %}
+{% elif adaptor_class.value == "class2_structured" %}
 {% include 'fragments/transform_field_mapping.py.j2' %}
-{% elif tier.value == "tier3_enterprise" %}
+{% elif adaptor_class.value == "class3_enterprise" %}
 {% include 'fragments/transform_aggregation.py.j2' %}
 {% endif %}
 

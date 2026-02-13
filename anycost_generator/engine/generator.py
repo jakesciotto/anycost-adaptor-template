@@ -1,6 +1,6 @@
 """AdaptorGenerator -- orchestrates config -> rendered output.
 
-Takes a validated ProviderConfig, selects the tier strategy,
+Takes a validated ProviderConfig, selects the adaptor class strategy,
 renders all templates, copies static files, and creates the
 output directory structure.
 """
@@ -11,18 +11,18 @@ import shutil
 from pathlib import Path
 from typing import Any
 
-from anycost_generator.config.schema import ProviderConfig, Tier
+from anycost_generator.config.schema import ProviderConfig, AdaptorClass
 from anycost_generator.engine.renderer import create_jinja_env, render_template
-from anycost_generator.tiers.base import TierStrategy
-from anycost_generator.tiers.tier1_credit import Tier1CreditStrategy
-from anycost_generator.tiers.tier2_structured import Tier2StructuredStrategy
-from anycost_generator.tiers.tier3_enterprise import Tier3EnterpriseStrategy
+from anycost_generator.classes.base import AdaptorClassStrategy
+from anycost_generator.classes.class1_credit import Class1CreditStrategy
+from anycost_generator.classes.class2_structured import Class2StructuredStrategy
+from anycost_generator.classes.class3_enterprise import Class3EnterpriseStrategy
 
 
-_STRATEGY_MAP: dict[Tier, type[TierStrategy]] = {
-    Tier.TIER1_CREDIT: Tier1CreditStrategy,
-    Tier.TIER2_STRUCTURED: Tier2StructuredStrategy,
-    Tier.TIER3_ENTERPRISE: Tier3EnterpriseStrategy,
+_STRATEGY_MAP: dict[AdaptorClass, type[AdaptorClassStrategy]] = {
+    AdaptorClass.CLASS1_CREDIT: Class1CreditStrategy,
+    AdaptorClass.CLASS2_STRUCTURED: Class2StructuredStrategy,
+    AdaptorClass.CLASS3_ENTERPRISE: Class3EnterpriseStrategy,
 }
 
 
@@ -36,9 +36,9 @@ class AdaptorGenerator:
             Path(__file__).resolve().parent.parent.parent / "templates"
         )
 
-        strategy_cls = _STRATEGY_MAP.get(config.tier)
+        strategy_cls = _STRATEGY_MAP.get(config.adaptor_class)
         if strategy_cls is None:
-            raise ValueError(f"Unknown tier: {config.tier}")
+            raise ValueError(f"Unknown adaptor class: {config.adaptor_class}")
         self.strategy = strategy_cls(config)
 
     def generate(self, output_dir: str | Path) -> Path:
@@ -53,7 +53,7 @@ class AdaptorGenerator:
         output = Path(output_dir)
         output.mkdir(parents=True, exist_ok=True)
 
-        print(f"Generating {self.config.provider.display_name} adaptor ({self.config.tier.value})...")
+        print(f"Generating {self.config.provider.display_name} adaptor ({self.config.adaptor_class.value})...")
         print(f"Output directory: {output.absolute()}")
 
         # Create directory structure
@@ -84,7 +84,7 @@ class AdaptorGenerator:
         return output
 
     def _build_context(self) -> dict[str, Any]:
-        """Build the full template context from config + tier extras."""
+        """Build the full template context from config + class extras."""
         # Dump the entire config as a dict for template access
         ctx = self.config.model_dump()
 
@@ -92,7 +92,7 @@ class AdaptorGenerator:
         ctx["provider_class_name"] = self.config.provider_class_name
         ctx["provider_upper"] = self.config.provider_upper
 
-        # Add tier-specific context
+        # Add class-specific context
         ctx.update(self.strategy.get_extra_context())
 
         return ctx

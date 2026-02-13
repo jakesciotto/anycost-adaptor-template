@@ -78,7 +78,7 @@ def cmd_validate(args):
         sys.exit(1)
 
     print(f"Config loaded successfully: {config.provider.display_name}")
-    print(f"  Tier: {config.tier.value}")
+    print(f"  Class: {config.adaptor_class.value}")
     print(f"  Auth method: {config.api.auth_method.value}")
     print(f"  Required env vars: {', '.join(config.auth.required_env_vars)}")
 

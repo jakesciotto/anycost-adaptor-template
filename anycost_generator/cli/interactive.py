@@ -1,7 +1,7 @@
 """Interactive CLI using InquirerPy for decision-tree prompts.
 
 Walks the user through building a ProviderConfig via prompts,
-determines the tier, optionally saves the YAML, and generates the adaptor.
+determines the adaptor class, optionally saves the YAML, and generates the adaptor.
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ from anycost_generator.cli.display import (
     print_config_summary,
     print_error,
     print_success,
-    print_tier_info,
+    print_class_info,
     print_warning,
 )
 from anycost_generator.config.loader import load_from_dict
@@ -28,12 +28,12 @@ from anycost_generator.validation.config_validator import validate_config
 from anycost_generator.validation.output_validator import validate_output
 
 
-# -- Tier descriptions for display ------------------------------------------
+# -- Adaptor class descriptions for display ---------------------------------
 
-TIER_DESCRIPTIONS = {
-    "tier1_credit": "Simple credit polling -- poll single endpoint, compute delta, credit-to-USD",
-    "tier2_structured": "Structured billing -- multiple endpoints, field mapping, line items",
-    "tier3_enterprise": "Enterprise/complex -- CSV processing or nested API, contract pricing, aggregation",
+CLASS_DESCRIPTIONS = {
+    "class1_credit": "Simple credit polling -- poll single endpoint, compute delta, credit-to-USD",
+    "class2_structured": "Structured billing -- multiple endpoints, field mapping, line items",
+    "class3_enterprise": "Enterprise/complex -- CSV processing or nested API, contract pricing, aggregation",
 }
 
 
@@ -95,29 +95,29 @@ def run_interactive(output_dir: str = "./output", save_config: str | None = None
     ).execute()
     optional_env_vars = [v.strip() for v in optional_env_vars_str.split(",") if v.strip()]
 
-    # Step 3: Data shape (determines tier)
+    # Step 3: Data shape (determines adaptor class)
     console.print("\n[bold]Step 3: Data Shape[/bold]")
     data_shape = inquirer.select(
         message="How does this provider expose billing/usage data?",
         choices=[
-            {"name": "Single endpoint returning credit/token balance", "value": "tier1_credit"},
-            {"name": "API returning structured billing line items", "value": "tier2_structured"},
-            {"name": "CSV file with billing data", "value": "tier3_csv"},
-            {"name": "Complex API with nested responses", "value": "tier3_api"},
+            {"name": "Single endpoint returning credit/token balance", "value": "class1_credit"},
+            {"name": "API returning structured billing line items", "value": "class2_structured"},
+            {"name": "CSV file with billing data", "value": "class3_csv"},
+            {"name": "Complex API with nested responses", "value": "class3_api"},
         ],
     ).execute()
 
-    # Map data shape to tier
-    if data_shape == "tier1_credit":
-        tier = "tier1_credit"
-    elif data_shape == "tier2_structured":
-        tier = "tier2_structured"
+    # Map data shape to adaptor class
+    if data_shape == "class1_credit":
+        adaptor_class = "class1_credit"
+    elif data_shape == "class2_structured":
+        adaptor_class = "class2_structured"
     else:
-        tier = "tier3_enterprise"
+        adaptor_class = "class3_enterprise"
 
-    print_tier_info(tier, TIER_DESCRIPTIONS[tier])
+    print_class_info(adaptor_class, CLASS_DESCRIPTIONS[adaptor_class])
 
-    # Step 4: Tier-specific details
+    # Step 4: Class-specific details
     config_data = {
         "provider": {
             "name": provider_name,
@@ -132,14 +132,14 @@ def run_interactive(output_dir: str = "./output", save_config: str | None = None
             "required_env_vars": required_env_vars,
             "optional_env_vars": optional_env_vars,
         },
-        "tier": tier,
+        "adaptor_class": adaptor_class,
     }
 
-    console.print(f"\n[bold]Step 4: {TIER_DESCRIPTIONS[tier].split(' -- ')[0]} Details[/bold]")
+    console.print(f"\n[bold]Step 4: {CLASS_DESCRIPTIONS[adaptor_class].split(' -- ')[0]} Details[/bold]")
 
-    if tier == "tier1_credit":
+    if adaptor_class == "class1_credit":
         config_data["credit_config"] = _prompt_credit_config(provider_name)
-    elif tier == "tier2_structured":
+    elif adaptor_class == "class2_structured":
         config_data["structured_config"] = _prompt_structured_config()
     else:
         config_data["enterprise_config"] = _prompt_enterprise_config(data_shape)
@@ -198,7 +198,7 @@ def run_interactive(output_dir: str = "./output", save_config: str | None = None
 
 
 def _prompt_credit_config(provider_name: str) -> dict:
-    """Prompt for tier 1 credit config."""
+    """Prompt for class 1 credit config."""
     credits_endpoint = inquirer.text(
         message="Credits/balance API endpoint (e.g. '/me', '/credits'):",
         default="/credits",
@@ -242,7 +242,7 @@ def _prompt_credit_config(provider_name: str) -> dict:
 
 
 def _prompt_structured_config() -> dict:
-    """Prompt for tier 2 structured billing config."""
+    """Prompt for class 2 structured billing config."""
     root_data_key = inquirer.text(
         message="Root data key in API response (e.g. 'data', 'items'):",
         default="data",
@@ -266,10 +266,10 @@ def _prompt_structured_config() -> dict:
 
 
 def _prompt_enterprise_config(data_shape: str) -> dict:
-    """Prompt for tier 3 enterprise config."""
+    """Prompt for class 3 enterprise config."""
     config: dict = {}
 
-    if data_shape == "tier3_csv":
+    if data_shape == "class3_csv":
         console.print("  CSV structure configuration:")
         header_skip = inquirer.text(
             message="Number of header rows to skip:",

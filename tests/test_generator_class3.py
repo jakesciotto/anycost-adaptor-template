@@ -1,4 +1,4 @@
-"""End-to-end generation tests for Tier 3 (enterprise)."""
+"""End-to-end generation tests for Class 3 (enterprise)."""
 
 import ast
 from pathlib import Path
@@ -10,10 +10,10 @@ from anycost_generator.engine.generator import AdaptorGenerator
 from anycost_generator.validation.output_validator import validate_output
 
 
-class TestTier3Generation:
+class TestClass3Generation:
 
-    def test_generate_from_fixture(self, complex_tier3_path, tmp_output):
-        config = load_from_yaml(complex_tier3_path)
+    def test_generate_from_fixture(self, complex_class3_path, tmp_output):
+        config = load_from_yaml(complex_class3_path)
         gen = AdaptorGenerator(config)
         output = gen.generate(tmp_output)
 
@@ -22,8 +22,8 @@ class TestTier3Generation:
         assert (output / "src" / "testenterprise_transform.py").exists()
         assert (output / "src" / "testenterprise_anycost_adaptor.py").exists()
 
-    def test_python_files_valid_syntax(self, complex_tier3_path, tmp_output):
-        config = load_from_yaml(complex_tier3_path)
+    def test_python_files_valid_syntax(self, complex_class3_path, tmp_output):
+        config = load_from_yaml(complex_class3_path)
         gen = AdaptorGenerator(config)
         output = gen.generate(tmp_output)
 
@@ -31,8 +31,8 @@ class TestTier3Generation:
             source = py_file.read_text()
             ast.parse(source)
 
-    def test_no_unresolved_placeholders(self, complex_tier3_path, tmp_output):
-        config = load_from_yaml(complex_tier3_path)
+    def test_no_unresolved_placeholders(self, complex_class3_path, tmp_output):
+        config = load_from_yaml(complex_class3_path)
         gen = AdaptorGenerator(config)
         output = gen.generate(tmp_output)
 
@@ -40,16 +40,16 @@ class TestTier3Generation:
         errors = [i for i in issues if i.severity == "error"]
         assert len(errors) == 0, f"Validation errors: {[str(e) for e in errors]}"
 
-    def test_csv_processing_in_client(self, complex_tier3_path, tmp_output):
-        config = load_from_yaml(complex_tier3_path)
+    def test_csv_processing_in_client(self, complex_class3_path, tmp_output):
+        config = load_from_yaml(complex_class3_path)
         gen = AdaptorGenerator(config)
         output = gen.generate(tmp_output)
 
         client_code = (output / "src" / "testenterprise_client.py").read_text()
         assert "process_csv_file" in client_code
 
-    def test_cost_categories_in_transform(self, complex_tier3_path, tmp_output):
-        config = load_from_yaml(complex_tier3_path)
+    def test_cost_categories_in_transform(self, complex_class3_path, tmp_output):
+        config = load_from_yaml(complex_class3_path)
         gen = AdaptorGenerator(config)
         output = gen.generate(tmp_output)
 
@@ -57,8 +57,8 @@ class TestTier3Generation:
         assert "compute" in transform_code
         assert "storage" in transform_code
 
-    def test_fixed_costs_in_transform(self, complex_tier3_path, tmp_output):
-        config = load_from_yaml(complex_tier3_path)
+    def test_fixed_costs_in_transform(self, complex_class3_path, tmp_output):
+        config = load_from_yaml(complex_class3_path)
         gen = AdaptorGenerator(config)
         output = gen.generate(tmp_output)
 

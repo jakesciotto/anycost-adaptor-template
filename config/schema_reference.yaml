@@ -1,7 +1,7 @@
 # AnyCost Adaptor Generator -- Config Schema Reference
 # Field names align with the CloudZero CBF spec:
 # https://docs.cloudzero.com/docs/anycost-common-bill-format-cbf
-# See config/examples/ for working examples of each tier.
+# See config/examples/ for working examples of each adaptor class.
 
 # ---- Required top-level sections ----
 
@@ -64,11 +64,11 @@ cbf_mapping:                       # OPTIONAL (has defaults)
 
 dependencies: []                   # Pip packages (default: requests, python-dotenv)
 
-# ---- Tier selection ----
-# Set explicitly or auto-detected from which tier-specific section is present.
-tier: ""                           # tier1_credit | tier2_structured | tier3_enterprise | (auto)
+# ---- Adaptor class selection ----
+# Set explicitly or auto-detected from which class-specific section is present.
+adaptor_class: ""                  # class1_credit | class2_structured | class3_enterprise | (auto)
 
-# ---- Tier 1: Credit Polling ----
+# ---- Class 1: Credit Polling ----
 credit_config:
   credits_endpoint: ""             # API endpoint to poll for credit balance
   credit_to_usd: 0.0              # Dollars per credit
@@ -80,7 +80,7 @@ credit_config:
   snapshot_file: ""                # Path to snapshot CSV
   model_pricing: {}                # Model-specific credit pricing
 
-# ---- Tier 2: Structured Billing ----
+# ---- Class 2: Structured Billing ----
 structured_config:
   root_data_key: "data"            # Key in API response containing data array
   line_type_field: ""              # Field identifying line item type
@@ -92,7 +92,7 @@ structured_config:
   tags: []                         # Fields to extract as resource/tag:<key> columns
   resource_id_template: ""         # Template for resource ID generation
 
-# ---- Tier 3: Enterprise ----
+# ---- Class 3: Enterprise ----
 enterprise_config:
   csv_structure:                   # For CSV-based providers
     header_rows_to_skip: 0

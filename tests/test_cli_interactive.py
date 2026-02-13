@@ -12,27 +12,27 @@ import pytest
 
 class TestCliValidate:
 
-    def test_validate_minimal_tier1(self, minimal_tier1_path):
+    def test_validate_minimal_class1(self, minimal_class1_path):
         result = subprocess.run(
-            [sys.executable, "-m", "anycost_generator", "validate", "--config", str(minimal_tier1_path)],
+            [sys.executable, "-m", "anycost_generator", "validate", "--config", str(minimal_class1_path)],
             capture_output=True,
             text=True,
         )
         assert result.returncode == 0
         assert "Config is valid" in result.stdout
 
-    def test_validate_full_tier2(self, full_tier2_path):
+    def test_validate_full_class2(self, full_class2_path):
         result = subprocess.run(
-            [sys.executable, "-m", "anycost_generator", "validate", "--config", str(full_tier2_path)],
+            [sys.executable, "-m", "anycost_generator", "validate", "--config", str(full_class2_path)],
             capture_output=True,
             text=True,
         )
         assert result.returncode == 0
         assert "Config is valid" in result.stdout
 
-    def test_validate_complex_tier3(self, complex_tier3_path):
+    def test_validate_complex_class3(self, complex_class3_path):
         result = subprocess.run(
-            [sys.executable, "-m", "anycost_generator", "validate", "--config", str(complex_tier3_path)],
+            [sys.executable, "-m", "anycost_generator", "validate", "--config", str(complex_class3_path)],
             capture_output=True,
             text=True,
         )
@@ -49,10 +49,10 @@ class TestCliValidate:
 
 class TestCliGenerate:
 
-    def test_generate_from_fixture(self, minimal_tier1_path, tmp_output):
+    def test_generate_from_fixture(self, minimal_class1_path, tmp_output):
         result = subprocess.run(
             [sys.executable, "-m", "anycost_generator", "generate",
-             "--config", str(minimal_tier1_path),
+             "--config", str(minimal_class1_path),
              "--output", str(tmp_output)],
             capture_output=True,
             text=True,

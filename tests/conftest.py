@@ -20,18 +20,18 @@ def examples_dir():
 
 
 @pytest.fixture
-def minimal_tier1_path():
-    return FIXTURES_DIR / "minimal_tier1.yaml"
+def minimal_class1_path():
+    return FIXTURES_DIR / "minimal_class1.yaml"
 
 
 @pytest.fixture
-def full_tier2_path():
-    return FIXTURES_DIR / "full_tier2.yaml"
+def full_class2_path():
+    return FIXTURES_DIR / "full_class2.yaml"
 
 
 @pytest.fixture
-def complex_tier3_path():
-    return FIXTURES_DIR / "complex_tier3.yaml"
+def complex_class3_path():
+    return FIXTURES_DIR / "complex_class3.yaml"
 
 
 @pytest.fixture

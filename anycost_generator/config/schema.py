@@ -1,8 +1,8 @@
 """Unified Pydantic config schema for AnyCost Adaptor Generator.
 
 All config paths (YAML file or interactive CLI dict) converge here.
-The tier is either explicitly set or auto-detected from which optional
-tier-specific section is present.
+The adaptor class is either explicitly set or auto-detected from which
+optional class-specific section is present.
 """
 
 from __future__ import annotations
@@ -13,10 +13,10 @@ from typing import Optional
 from pydantic import BaseModel, Field, model_validator
 
 
-class Tier(str, Enum):
-    TIER1_CREDIT = "tier1_credit"
-    TIER2_STRUCTURED = "tier2_structured"
-    TIER3_ENTERPRISE = "tier3_enterprise"
+class AdaptorClass(str, Enum):
+    CLASS1_CREDIT = "class1_credit"
+    CLASS2_STRUCTURED = "class2_structured"
+    CLASS3_ENTERPRISE = "class3_enterprise"
 
 
 class AuthMethod(str, Enum):
@@ -119,7 +119,7 @@ class CbfMapping(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Tier-specific optional sections
+# Class-specific optional sections
 # ---------------------------------------------------------------------------
 
 class TokenPool(BaseModel):
@@ -128,7 +128,7 @@ class TokenPool(BaseModel):
 
 
 class CreditConfig(BaseModel):
-    """Tier 1: credit-based polling."""
+    """Class 1: credit-based polling."""
     credits_endpoint: str = Field(default="")
     credit_to_usd: float = Field(default=0.0, description="Dollars per credit")
     discount_rate: float = Field(default=0.0, description="Discount percentage (0-1)")
@@ -148,7 +148,7 @@ class FieldMappings(BaseModel):
 
 
 class StructuredConfig(BaseModel):
-    """Tier 2: structured billing API with multiple endpoints/line items."""
+    """Class 2: structured billing API with multiple endpoints/line items."""
     root_data_key: str = Field(default="data")
     line_type_field: str = Field(default="")
     field_mappings: FieldMappings = Field(default_factory=FieldMappings)
@@ -179,7 +179,7 @@ class FixedCost(BaseModel):
 
 
 class EnterpriseConfig(BaseModel):
-    """Tier 3: CSV processing or complex nested API with contract pricing."""
+    """Class 3: CSV processing or complex nested API with contract pricing."""
     csv_structure: Optional[CsvStructure] = None
     nested_response: bool = Field(default=False)
     pricing_rules: list[PricingRule] = Field(default_factory=list)
@@ -205,29 +205,29 @@ class ProviderConfig(BaseModel):
         default_factory=lambda: ["requests>=2.28.0", "python-dotenv>=0.19.0"]
     )
 
-    # Tier -- explicit or auto-detected
-    tier: Optional[Tier] = Field(default=None, description="Explicit tier override")
+    # Adaptor class -- explicit or auto-detected
+    adaptor_class: Optional[AdaptorClass] = Field(default=None, description="Explicit adaptor class override")
 
-    # Tier-specific sections (exactly one should be present, or tier is set explicitly)
+    # Class-specific sections (exactly one should be present, or adaptor_class is set explicitly)
     credit_config: Optional[CreditConfig] = None
     structured_config: Optional[StructuredConfig] = None
     enterprise_config: Optional[EnterpriseConfig] = None
 
     @model_validator(mode="after")
-    def resolve_tier(self) -> "ProviderConfig":
-        """Auto-detect tier from which optional section is present."""
-        if self.tier is not None:
+    def resolve_adaptor_class(self) -> "ProviderConfig":
+        """Auto-detect adaptor class from which optional section is present."""
+        if self.adaptor_class is not None:
             return self
 
         if self.credit_config is not None:
-            self.tier = Tier.TIER1_CREDIT
+            self.adaptor_class = AdaptorClass.CLASS1_CREDIT
         elif self.structured_config is not None:
-            self.tier = Tier.TIER2_STRUCTURED
+            self.adaptor_class = AdaptorClass.CLASS2_STRUCTURED
         elif self.enterprise_config is not None:
-            self.tier = Tier.TIER3_ENTERPRISE
+            self.adaptor_class = AdaptorClass.CLASS3_ENTERPRISE
         else:
-            # Default to tier1 if no tier-specific config is present
-            self.tier = Tier.TIER1_CREDIT
+            # Default to class1 if no class-specific config is present
+            self.adaptor_class = AdaptorClass.CLASS1_CREDIT
             self.credit_config = CreditConfig()
 
         return self
